@@ -241,6 +241,72 @@
   .btn-dl.png { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.4); color: var(--accent2); }
   .btn-dl.json { background: rgba(79,168,232,0.12); border: 1px solid rgba(79,168,232,0.3); color: var(--accent); }
 
+  /* ── Prompt button ─────────────────────────────────────── */
+  #btn-prompt {
+    width: 100%; padding: 14px; margin-top: 12px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: var(--radius);
+    font-family: var(--sans); font-size: 14px; font-weight: 600;
+    letter-spacing: 0.04em; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  #btn-prompt:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,168,232,0.05); }
+
+  /* ── Modal ─────────────────────────────────────────────── */
+  #prompt-modal {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(8,12,16,0.88); backdrop-filter: blur(6px);
+    padding: 24px 16px; overflow-y: auto;
+  }
+  #prompt-modal.open { display: flex; align-items: flex-start; justify-content: center; }
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 8px; width: 100%; max-width: 720px;
+    margin: auto; overflow: hidden;
+    animation: modalIn 0.18s ease;
+  }
+  @keyframes modalIn { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: none; } }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .modal-header h3 { font-family: var(--sans); font-size: 14px; font-weight: 700; color: white; }
+  .modal-close {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 20px; line-height: 1; padding: 2px 6px;
+    border-radius: 4px; transition: color 0.15s;
+  }
+  .modal-close:hover { color: white; }
+  .modal-body { padding: 20px; }
+  #prompt-textarea {
+    width: 100%; min-height: 460px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    color: var(--text); font-family: var(--mono); font-size: 12px;
+    line-height: 1.7; padding: 16px; resize: vertical; outline: none;
+  }
+  #prompt-textarea:focus { border-color: var(--border2); }
+  .modal-footer {
+    display: flex; gap: 10px; margin-top: 12px;
+  }
+  .btn-copy {
+    flex: 1; padding: 11px; background: var(--accent); color: #080c10;
+    border: none; border-radius: var(--radius); font-family: var(--sans);
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-copy:hover { opacity: 0.85; }
+  .btn-copy.copied { background: var(--accent3); }
+  .btn-modal-dl {
+    padding: 11px 16px; background: transparent;
+    border: 1px solid var(--border2); color: var(--muted);
+    border-radius: var(--radius); font-family: var(--sans);
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+  .btn-modal-dl:hover { border-color: var(--accent); color: var(--accent); }
+
   /* ── Responsive ────────────────────────────────────────── */
   @media (max-width: 520px) {
     .pheno-grid { grid-template-columns: 1fr; }
@@ -263,6 +329,7 @@
   <div id="server-bar">
     <div class="dot" id="conn-dot"></div>
     <label>SERVIDOR →</label>
+    <input id="server-url" type="text" placeholder="https://xxxx.ngrok.io  (pega la URL de Colab aquí)" spellcheck="false">
     <button onclick="testConnection()" style="background:none;border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:var(--mono)">test</button>
   </div>
 
@@ -575,8 +642,33 @@
       <a id="dl-png" class="btn-dl png" href="#" download="raeem_simulacion.png">⬇ Descargar gráfica (.png)</a>
       <a id="dl-json" class="btn-dl json" href="#" download="raeem_resultado.json">⬇ Descargar resultado (.json)</a>
     </div>
+
+    <button id="btn-prompt" onclick="openPromptModal()">
+      <span>✦</span> Crear prompt para LLM sobre estos resultados
+    </button>
   </div>
 
+</div>
+
+<!-- Modal de Prompt -->
+<div id="prompt-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>✦ Prompt para LLM — RA-EEM</h3>
+      <button class="modal-close" onclick="closePromptModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">
+        Prompt listo para pegar en Claude, ChatGPT u otro LLM. Incluye la firma fenotípica completa, los parámetros y el contexto del modelo.
+      </p>
+      <textarea id="prompt-textarea" readonly spellcheck="false"></textarea>
+      <div class="modal-footer">
+        <button class="btn-copy" id="copy-btn" onclick="copyPrompt()">Copiar prompt</button>
+        <button class="btn-modal-dl" onclick="downloadPrompt()">⬇ .txt</button>
+        <button class="btn-modal-dl" onclick="closePromptModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -813,6 +905,11 @@ function renderResults(data, params) {
   const jsonBlob = new Blob([JSON.stringify({ params, phenotype: ph }, null, 2)], { type: 'application/json' });
   document.getElementById('dl-json').href = URL.createObjectURL(jsonBlob);
 
+  // Guardar para el prompt
+  _lastResult = data;
+  _lastParams = params;
+  document.getElementById('btn-prompt').style.display = 'flex';
+
   document.getElementById('results').style.display = 'block';
   document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -825,6 +922,182 @@ function colorClass(v) {
   if (reds.some(r => s.includes(r))) return 'red';
   return 'orange';
 }
+
+// ── Estado global para el prompt ──────────────────────────
+let _lastResult = null;
+let _lastParams = null;
+
+// Guardar resultado al renderizar (patch de renderResults)
+const _origRender = renderResults;
+
+// ── Prompt modal ───────────────────────────────────────────
+function openPromptModal() {
+  if (!_lastResult) {
+    alert('Primero ejecuta una simulación para generar el prompt.');
+    return;
+  }
+  const prompt = buildLLMPrompt(_lastParams, _lastResult);
+  document.getElementById('prompt-textarea').value = prompt;
+  document.getElementById('prompt-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePromptModal() {
+  document.getElementById('prompt-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('prompt-modal').addEventListener('click', function(e) {
+  if (e.target === this) closePromptModal();
+});
+
+async function copyPrompt() {
+  const ta = document.getElementById('prompt-textarea');
+  try {
+    await navigator.clipboard.writeText(ta.value);
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar prompt'; btn.classList.remove('copied'); }, 2000);
+  } catch(e) {
+    ta.select(); document.execCommand('copy');
+  }
+}
+
+function downloadPrompt() {
+  const text = document.getElementById('prompt-textarea').value;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'raeem_prompt_llm.txt';
+  a.click();
+}
+
+// ── Constructor del prompt ─────────────────────────────────
+function buildLLMPrompt(params, result) {
+  const ph = result.phenotype;
+  const st = ph.simulation_statistics;
+  const alter = params._alter_settings;
+  const prof  = params._derived_agent_profile;
+
+  const ctx_labels = {
+    ROMANTIC: 'Romántica / Pareja', PROFESSIONAL: 'Profesional / Laboral',
+    SOCIAL: 'Social / Amistad', FAMILIAL: 'Familiar'
+  };
+
+  const lines = [];
+
+  lines.push('=== CONTEXTO DEL MODELO RA-EEM ===');
+  lines.push('');
+  lines.push('Eres un psicólogo o terapeuta relacional experto en teoría del apego, procesamiento predictivo y sistemas dinámicos aplicados a vínculos humanos. Se te entrega la salida de una simulación computacional llamada RA-EEM (Relational Allostatic Emergent Energy Model).');
+  lines.push('');
+  lines.push('RA-EEM es un modelo de díadas emocionales que simula la dinámica de dos agentes (Sujeto i y Alter j) a lo largo de 500 ticks temporales. Cada agente tiene:');
+  lines.push('  - H (emisión conductual): comportamiento observable, en [-1, 1]. Positivo = prosocial. Negativo = hostil/retirado.');
+  lines.push('  - I (angustia acumulada): activación emocional, en [0, 1].');
+  lines.push('  - C (burnout relacional): desgaste alostático acumulado, en [0, 1].');
+  lines.push('  - M (memoria relacional): historia subjetiva del vínculo, en [-1, 1].');
+  lines.push('  - E (expectativas): predicción interna sobre la conducta del otro.');
+  lines.push('  - P (rigidez predictiva): cuánto resiste el agente actualizar sus expectativas.');
+  lines.push('  - tau: delay temporal en integrar la conducta percibida del otro.');
+  lines.push('  - chi/kappa: sesgo de amenaza vs sesgo de esperanza en el filtro perceptivo.');
+  lines.push('');
+  lines.push('El modelo NO diagnostica clínicamente. Modela patrones emergentes de interacción bajo distintas configuraciones psicológicas.');
+  lines.push('');
+
+  lines.push('=== CONFIGURACIÓN DE LA SIMULACIÓN ===');
+  lines.push('');
+  lines.push(`Contexto del vínculo: ${ctx_labels[alter.context_type] || alter.context_type}`);
+  lines.push(`Arquetipo del Alter: ${(alter.archetype || '').replace(/_/g, ' ')}`);
+  lines.push(`Perfil de estrés ambiental: ${params._stress_profile}`);
+  lines.push(`Ruido ambiental (noise_sigma): ${params.noise_sigma}`);
+  lines.push(`Delay de integración (tau): ${params.tau} ticks`);
+  lines.push('');
+
+  lines.push('--- Perfil del Sujeto (i) ---');
+  lines.push(`  Seguridad basal (w_s): ${prof.w_s}`);
+  lines.push(`  Ansiedad basal (w_a): ${prof.w_a}`);
+  lines.push(`  Evitación basal (w_e): ${prof.w_e}`);
+  lines.push(`  Desorganización (w_d): ${prof.w_d}`);
+  lines.push(`  Agencia relacional (A): ${prof.A}`);
+  lines.push(`  Rigidez predictiva (P_default): ${prof.P_default}`);
+  lines.push(`  Sesgo de amenaza (chi): ${params.chi}`);
+  lines.push(`  Sesgo de esperanza (kappa): ${params.kappa}`);
+  lines.push('');
+
+  if (alter.custom_profile) {
+    const cp = alter.custom_profile;
+    lines.push('--- Perfil del Alter (j) — personalizado ---');
+    lines.push(`  Seguridad (w_s): ${cp.w_s}  Ansiedad (w_a): ${cp.w_a}  Evitación (w_e): ${cp.w_e}`);
+    lines.push(`  Desorganización (w_d): ${cp.w_d}  Empatía (G): ${cp.G}  Agencia (A): ${cp.A}`);
+    lines.push(`  Rigidez predictiva (P_default): ${cp.P_default}`);
+    lines.push('');
+  }
+
+  lines.push('--- Parámetros de regulación y reparación ---');
+  lines.push(`  Velocidad burnout (alpha): ${params.alpha}  Recuperación (beta): ${params.beta}`);
+  lines.push(`  Umbral reparación: ${params.repair_threshold}  Probabilidad: ${params.repair_probability}  Fuerza: ${params.repair_strength}`);
+  lines.push(`  Co-regulación (zeta): ${params.zeta}`);
+  lines.push('');
+
+  lines.push('=== FIRMA FENOTÍPICA (salida del modelo) ===');
+  lines.push('');
+  lines.push('--- Perfil de Regulación ---');
+  Object.entries(ph.regulation_profile).forEach(([k,v]) => lines.push(`  ${k.replace(/_/g,' ')}: ${v}`));
+  lines.push('');
+  lines.push('--- Perfil Predictivo ---');
+  Object.entries(ph.predictive_profile).forEach(([k,v]) => lines.push(`  ${k.replace(/_/g,' ')}: ${v}`));
+  lines.push('');
+  lines.push('--- Estabilidad Relacional ---');
+  Object.entries(ph.relational_stability).forEach(([k,v]) => lines.push(`  ${k.replace(/_/g,' ')}: ${v}`));
+  lines.push('');
+  lines.push('--- Perfil Energético ---');
+  Object.entries(ph.energetic_profile).forEach(([k,v]) => lines.push(`  ${k.replace(/_/g,' ')}: ${v}`));
+  lines.push('');
+  lines.push('--- Patrones Emergentes Detectados ---');
+  (ph.emergent_patterns || []).forEach(p => lines.push(`  · ${p.replace(/_/g,' ')}`));
+  if (!ph.emergent_patterns?.length) lines.push('  (ninguno)');
+  lines.push('');
+
+  lines.push('=== ESTADÍSTICAS DE LA SIMULACIÓN ===');
+  lines.push('');
+  const statLabels = {
+    mean_H_i: 'H promedio Sujeto', mean_H_j: 'H promedio Alter',
+    std_H_i: 'Variabilidad H Sujeto', std_H_j: 'Variabilidad H Alter',
+    oscillations_i: 'Oscilaciones Sujeto', oscillations_j: 'Oscilaciones Alter',
+    lagged_resonance_ij: 'Resonancia retardada i→j',
+    peak_I_i: 'Angustia pico Sujeto', peak_I_j: 'Angustia pico Alter',
+    mean_I_i: 'Angustia media Sujeto', mean_I_j: 'Angustia media Alter',
+    angst_acceleration_i: 'Aceleración de angustia',
+    max_C_i: 'Burnout máximo Sujeto', max_C_j: 'Burnout máximo Alter',
+    mean_C_i: 'Burnout medio Sujeto', mean_C_j: 'Burnout medio Alter',
+    phase_entropy: 'Entropía de fase relacional',
+    repair_events_j: 'Eventos de reparación del Alter',
+  };
+  Object.entries(statLabels).forEach(([k, label]) => {
+    const v = st[k];
+    if (v !== undefined) lines.push(`  ${label}: ${typeof v === 'number' ? v.toFixed(5) : v}`);
+  });
+  lines.push('');
+
+  lines.push('=== SOLICITUD DE ANÁLISIS ===');
+  lines.push('');
+  lines.push('Con toda la información anterior, por favor realiza:');
+  lines.push('');
+  lines.push('1. LECTURA HUMANISTA del vínculo simulado: ¿Qué historia relacional emerge? ¿Qué está viviendo el Sujeto? ¿Qué patrón sostiene el Alter?');
+  lines.push('');
+  lines.push('2. ANÁLISIS DE LA DINÁMICA: Interpreta el atractor relacional, la resonancia retardada, la entropía de fase y los eventos de reparación en términos psicológicos concretos.');
+  lines.push('');
+  lines.push('3. TENSIONES Y PARADOJAS: ¿Qué contradicciones estructurales aparecen en el sistema? ¿Dónde hay adaptaciones que protegen y dañan al mismo tiempo?');
+  lines.push('');
+  lines.push('4. IMPLICANCIAS TERAPÉUTICAS: ¿Qué dimensiones del sistema podrían ser foco de trabajo terapéutico? No en términos de diagnóstico, sino de patrones que podrían explorarse.');
+  lines.push('');
+  lines.push('5. COHERENCIA DEL MODELO: ¿Los resultados son internamente consistentes? ¿Hay algo que llame la atención como inesperado o significativo?');
+  lines.push('');
+  lines.push('Responde con profundidad, usando lenguaje humanista y clínico accesible. Puedes hacer preguntas reflexivas donde sea útil.');
+
+  return lines.join('\n');
+}
+
 </script>
 </body>
 </html>
