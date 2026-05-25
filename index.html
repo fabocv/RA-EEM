@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RA-EEM — Simulador Relacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ── Variables ─────────────────────────────────────────── */
+  :root {
+    --bg:        #080c10;
+    --surface:   #0d1117;
+    --border:    #1e2d3d;
+    --border2:   #2a3f52;
+    --accent:    #4fa8e8;
+    --accent2:   #f97316;
+    --accent3:   #3fb950;
+    --text:      #cdd9e5;
+    --muted:     #6e8899;
+    --danger:    #ff7b72;
+    --mono:      'DM Mono', monospace;
+    --sans:      'Syne', sans-serif;
+    --radius:    6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── Noise overlay ─────────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+
+  /* ── Layout ────────────────────────────────────────────── */
+  #app { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* ── Header ────────────────────────────────────────────── */
+  header { margin-bottom: 48px; }
+  .logo { font-family: var(--sans); font-size: 11px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+  h1 { font-family: var(--sans); font-size: 32px; font-weight: 800; color: white; line-height: 1.1; }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: 10px; color: var(--muted); font-size: 13px; max-width: 500px; }
+
+  /* ── Server config ─────────────────────────────────────── */
+  #server-bar {
+    display: flex; gap: 8px; align-items: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 14px;
+    margin-bottom: 32px;
+  }
+  #server-bar label { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  #server-url {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--accent); font-family: var(--mono); font-size: 12px;
+  }
+  #server-url::placeholder { color: var(--border2); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); flex-shrink: 0; transition: background 0.3s; }
+  .dot.ok { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+  .dot.err { background: var(--danger); }
+
+  /* ── Section ───────────────────────────────────────────── */
+  .section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; cursor: pointer;
+    background: var(--surface);
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .section-header:hover { background: #111820; }
+  .section-title { font-family: var(--sans); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: white; }
+  .section-tag { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .chevron { color: var(--muted); transition: transform 0.2s; font-size: 12px; }
+  .section.open .chevron { transform: rotate(90deg); }
+  .section-body { padding: 20px 18px 24px; border-top: 1px solid var(--border); display: none; }
+  .section.open .section-body { display: block; }
+
+  /* ── Fields ────────────────────────────────────────────── */
+  .field { margin-bottom: 20px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 12px; color: var(--muted);
+    margin-bottom: 8px; line-height: 1.4;
+  }
+  .field label strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+  /* Slider con valor */
+  .slider-wrap { display: flex; gap: 12px; align-items: center; }
+  .slider-wrap input[type=range] {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 3px; background: var(--border2); border-radius: 2px; outline: none;
+  }
+  .slider-wrap input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: var(--accent);
+    cursor: pointer; transition: transform 0.1s;
+  }
+  .slider-wrap input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
+  .val-badge {
+    min-width: 32px; text-align: center; font-size: 13px;
+    color: var(--accent); font-weight: 500;
+  }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--border2); margin-top: 3px; }
+
+  /* Select */
+  select {
+    width: 100%; background: var(--bg); border: 1px solid var(--border2);
+    color: var(--text); font-family: var(--mono); font-size: 13px;
+    padding: 9px 12px; border-radius: var(--radius); outline: none;
+    cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236e8899' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+  }
+  select:focus { border-color: var(--accent); }
+
+  /* Checkbox toggle */
+  .toggle-wrap { display: flex; align-items: center; gap: 12px; }
+  .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: var(--border2);
+    border-radius: 11px; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute; width: 16px; height: 16px;
+    left: 3px; bottom: 3px; background: white; border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+  .toggle-label { font-size: 12px; color: var(--muted); }
+
+  /* Custom profile grid */
+  #custom-profile-block { display: none; margin-top: 16px; }
+  #custom-profile-block.visible { display: block; }
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── Submit ────────────────────────────────────────────── */
+  #btn-run {
+    width: 100%; padding: 16px; margin-top: 24px;
+    background: var(--accent); color: #080c10;
+    border: none; border-radius: var(--radius);
+    font-family: var(--sans); font-size: 15px; font-weight: 700;
+    letter-spacing: 0.05em; cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  #btn-run:hover { opacity: 0.88; }
+  #btn-run:active { transform: scale(0.99); }
+  #btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Progress ──────────────────────────────────────────── */
+  #progress { display: none; margin-top: 20px; }
+  .progress-bar { height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); animation: prog 2s ease-in-out infinite; }
+  @keyframes prog { 0% { width: 0%; margin-left: 0; } 50% { width: 70%; margin-left: 15%; } 100% { width: 0%; margin-left: 100%; } }
+  .progress-label { font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center; }
+
+  /* ── Error ─────────────────────────────────────────────── */
+  #error-box {
+    display: none; margin-top: 16px; padding: 12px 16px;
+    background: rgba(255,123,114,0.08); border: 1px solid rgba(255,123,114,0.3);
+    border-radius: var(--radius); color: var(--danger); font-size: 13px;
+  }
+
+  /* ── Results ───────────────────────────────────────────── */
+  #results { display: none; margin-top: 32px; }
+  .results-header {
+    font-family: var(--sans); font-size: 11px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+  }
+
+  /* Image */
+  #chart-img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); display: block; }
+
+  /* Phenotype cards */
+  .pheno-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  .pheno-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+  }
+  .pheno-card h4 { font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .pheno-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; gap: 8px; }
+  .pheno-row:last-child { margin-bottom: 0; }
+  .pheno-key { color: var(--muted); }
+  .pheno-val { color: var(--accent); font-weight: 500; text-align: right; }
+  .pheno-val.green { color: var(--accent3); }
+  .pheno-val.orange { color: var(--accent2); }
+  .pheno-val.red { color: var(--danger); }
+
+  /* Attractor highlight */
+  .attractor-box {
+    margin-top: 12px; padding: 12px 16px;
+    background: rgba(79,168,232,0.06); border: 1px solid rgba(79,168,232,0.2);
+    border-radius: var(--radius); text-align: center;
+  }
+  .attractor-box .label { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .attractor-box .value { font-family: var(--sans); font-size: 16px; font-weight: 700; color: var(--accent); }
+
+  /* Patterns */
+  .patterns-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .pattern-tag {
+    padding: 4px 10px; border-radius: 20px; font-size: 11px;
+    background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3);
+    color: var(--accent3); font-family: var(--mono);
+  }
+
+  /* Stats table */
+  .stats-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+  .stats-table tr { border-bottom: 1px solid var(--border); }
+  .stats-table td { padding: 6px 8px; }
+  .stats-table td:first-child { color: var(--muted); font-size: 11px; }
+  .stats-table td:last-child { text-align: right; color: var(--text); font-weight: 500; }
+
+  /* Download buttons */
+  .dl-row { display: flex; gap: 12px; margin-top: 20px; }
+  .btn-dl {
+    flex: 1; padding: 11px; text-align: center;
+    border-radius: var(--radius); font-family: var(--sans);
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    text-decoration: none; transition: opacity 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-dl:hover { opacity: 0.82; }
+  .btn-dl.png { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.4); color: var(--accent2); }
+  .btn-dl.json { background: rgba(79,168,232,0.12); border: 1px solid rgba(79,168,232,0.3); color: var(--accent); }
+
+  /* ── Responsive ────────────────────────────────────────── */
+  @media (max-width: 520px) {
+    .pheno-grid { grid-template-columns: 1fr; }
+    .profile-grid { grid-template-columns: 1fr; }
+    .dl-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo">Modelo Computacional Relacional</div>
+    <h1>RA-EEM <span>//</span> Simulador</h1>
+    <p class="subtitle">Relational Allostatic Emergent Energy Model · v0.3.4 · Responde el cuestionario para simular la dinámica del vínculo.</p>
+  </header>
+
+  <!-- ── Server URL ── -->
+  <div id="server-bar">
+    <div class="dot" id="conn-dot"></div>
+    <label>SERVIDOR →</label>
+    <input id="server-url" type="text" placeholder="https://xxxx.ngrok.io  (pega la URL de Colab aquí)" spellcheck="false">
+    <button onclick="testConnection()" style="background:none;border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:var(--mono)">test</button>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SECCIÓN 1: ALTER
+  ════════════════════════════════════════ -->
+  <div class="section open" id="s-alter">
+    <div class="section-header" onclick="toggleSection('s-alter')">
+      <span class="section-title">① Configuración del Alter</span>
+      <span><span class="section-tag">¿con quién?</span> <span class="chevron">▶</span></span>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label><strong>Contexto del vínculo</strong>¿Qué tipo de relación es la que quieres simular?</label>
+        <select id="context-type" onchange="updateArchetypes()">
+          <option value="ROMANTIC">Romántica / Pareja</option>
+          <option value="PROFESSIONAL">Profesional / Laboral</option>
+          <option value="SOCIAL">Social / Amistad</option>
+          <option value="FAMILIAL" selected>Familiar</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label><strong>Arquetipo del alter</strong>¿Qué patrón describe mejor a la otra persona?</label>
+        <select id="archetype"></select>
+      </div>
+
+      <div class="field">
+        <div class="toggle-wrap">
+          <label class="toggle">
+            <input type="checkbox" id="use-custom" onchange="toggleCustomProfile()">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Definir perfil personalizado del alter (avanzado)</span>
+        </div>
+      </div>
+
+      <div id="custom-profile-block">
+        <div class="profile-grid">
+          <div class="field">
+            <label><strong>w_s · Seguridad basal</strong></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-ws-j')"><span class="val-badge" id="v-ws-j">0.50</span></div>
+          </div>
+          <div class="field">
+            <label><strong>w_a · Ansiedad basal</strong></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-wa-j')"><span class="val-badge" id="v-wa-j">0.50</span></div>
+          </div>
+          <div class="field">
+            <label><strong>w_e · Evitación basal</strong></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-we-j')"><span class="val-badge" id="v-we-j">0.50</span></div>
+          </div>
+          <div class="field">
+            <label><strong>w_d · Desorganización</strong></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.2" oninput="syncVal(this,'v-wd-j')"><span class="val-badge" id="v-wd-j">0.20</span></div>
+          </div>
+          <div class="field">
+            <label><strong>G · Empatía</strong></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-g-j')"><span class="val-badge" id="v-g-j">0.50</span></div>
+          </div>
+          <div class="field">
+            <label><strong>A · Agencia / autonomía</strong></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-a-j')"><span class="val-badge" id="v-a-j">0.50</span></div>
+          </div>
+          <div class="field" style="grid-column: 1/-1">
+            <label><strong>P_default · Rigidez predictiva</strong><br>¿Qué tan firmemente confía en su interpretación emocional de las relaciones?</label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.7" oninput="syncVal(this,'v-p-j')"><span class="val-badge" id="v-p-j">0.70</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SECCIÓN 2: APEGO
+  ════════════════════════════════════════ -->
+  <div class="section open" id="s-apego">
+    <div class="section-header" onclick="toggleSection('s-apego')">
+      <span class="section-title">② Perfil de Apego</span>
+      <span><span class="section-tag">tú</span> <span class="chevron">▶</span></span>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label><strong>Seguridad emocional</strong>¿Qué tan fácil te resulta sentir estabilidad emocional incluso cuando la relación atraviesa tensión?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-sec')"><span class="val-badge" id="v-sec">5.0</span></div>
+        <div class="scale-labels"><span>0 · Muy difícil</span><span>10 · Muy fácil</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Ansiedad de apego</strong>¿Qué tan intensamente temes abandono, distancia o pérdida emocional?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-anx')"><span class="val-badge" id="v-anx">5.0</span></div>
+        <div class="scale-labels"><span>0 · Casi nada</span><span>10 · Muy intensamente</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Evitación</strong>¿Qué tan frecuentemente necesitas distancia emocional o te cierras cuando algo duele?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="4" oninput="syncVal(this,'v-avi')"><span class="val-badge" id="v-avi">4.0</span></div>
+        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Constantemente</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Desorganización</strong>¿Sientes impulsos contradictorios simultáneos (buscar cercanía y rechazarla al mismo tiempo)?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="3" oninput="syncVal(this,'v-dis')"><span class="val-badge" id="v-dis">3.0</span></div>
+        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Muy frecuente</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SECCIÓN 3: REGULACIÓN
+  ════════════════════════════════════════ -->
+  <div class="section" id="s-reg">
+    <div class="section-header" onclick="toggleSection('s-reg')">
+      <span class="section-title">③ Regulación y Funcionamiento</span>
+      <span><span class="section-tag">capacidades</span> <span class="chevron">▶</span></span>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label><strong>Masking / Regulación ejecutiva</strong>¿Qué tan capaz eres de mantener una conducta funcional aunque estés emocionalmente mal?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-mask')"><span class="val-badge" id="v-mask">6.0</span></div>
+        <div class="scale-labels"><span>0 · Nada</span><span>10 · Totalmente</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Empatía / Responsividad</strong>¿Qué tan responsable te sientes por regular o contener emocionalmente al otro?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="7" oninput="syncVal(this,'v-emp')"><span class="val-badge" id="v-emp">7.0</span></div>
+        <div class="scale-labels"><span>0 · Poco</span><span>10 · Mucho</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Agencia relacional</strong>¿Qué tanta autonomía real tienes dentro de la relación o sistema?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-age')"><span class="val-badge" id="v-age">5.0</span></div>
+        <div class="scale-labels"><span>0 · Ninguna</span><span>10 · Total</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SECCIÓN 4: BURNOUT
+  ════════════════════════════════════════ -->
+  <div class="section" id="s-burn">
+    <div class="section-header" onclick="toggleSection('s-burn')">
+      <span class="section-title">④ Fatiga y Carga Alostática</span>
+      <span><span class="section-tag">desgaste</span> <span class="chevron">▶</span></span>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label><strong>Velocidad de burnout</strong>¿Qué tan rápido sientes que te desgastas emocionalmente en esta relación?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-bspd')"><span class="val-badge" id="v-bspd">5.0</span></div>
+        <div class="scale-labels"><span>0 · Lento</span><span>10 · Rápido</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Velocidad de recuperación</strong>¿Qué tan rápido te recuperas emocionalmente después de tensión?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rspd')"><span class="val-badge" id="v-rspd">5.0</span></div>
+        <div class="scale-labels"><span>0 · Lento</span><span>10 · Rápido</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Costo de hiperactivación</strong>¿Qué tanto agota estar en alerta o búsqueda emocional activa?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-hca')"><span class="val-badge" id="v-hca">5.0</span></div>
+        <div class="scale-labels"><span>0 · Poco</span><span>10 · Mucho</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Costo de evitación</strong>¿Qué tanto agota mantener distancia o bloquear las emociones?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="4" oninput="syncVal(this,'v-eca')"><span class="val-badge" id="v-eca">4.0</span></div>
+        <div class="scale-labels"><span>0 · Poco</span><span>10 · Mucho</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SECCIÓN 5: PERCEPCIÓN
+  ════════════════════════════════════════ -->
+  <div class="section" id="s-perc">
+    <div class="section-header" onclick="toggleSection('s-perc')">
+      <span class="section-title">⑤ Filtros Perceptivos</span>
+      <span><span class="section-tag">sesgo</span> <span class="chevron">▶</span></span>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label><strong>Sesgo de amenaza</strong>¿Con qué facilidad interpretas señales ambiguas como rechazo, crítica o abandono?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-thr')"><span class="val-badge" id="v-thr">6.0</span></div>
+        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Siempre</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Visibilidad de reparación</strong>¿Qué tan fácil te resulta reconocer y recibir gestos de acercamiento o reparación?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rep')"><span class="val-badge" id="v-rep">5.0</span></div>
+        <div class="scale-labels"><span>0 · Muy difícil</span><span>10 · Fácilmente</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Hipervigilancia relacional</strong>¿Qué tan frecuentemente monitorizas el estado emocional o disponibilidad del otro?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-hyp')"><span class="val-badge" id="v-hyp">6.0</span></div>
+        <div class="scale-labels"><span>0 · Poco</span><span>10 · Constantemente</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Negatividad en memoria</strong>¿Las experiencias negativas tienden a pesar más que las positivas en tu recuerdo del vínculo?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-neg')"><span class="val-badge" id="v-neg">5.0</span></div>
+        <div class="scale-labels"><span>0 · Equilibrado</span><span>10 · Muy negativo</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       SECCIÓN 6: ENTORNO
+  ════════════════════════════════════════ -->
+  <div class="section" id="s-env">
+    <div class="section-header" onclick="toggleSection('s-env')">
+      <span class="section-title">⑥ Entorno y Co-regulación</span>
+      <span><span class="section-tag">contexto</span> <span class="chevron">▶</span></span>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label><strong>Inestabilidad del entorno</strong>¿Qué tan impredecible o caótico es el contexto en el que ocurre esta relación?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-env')"><span class="val-badge" id="v-env">5.0</span></div>
+        <div class="scale-labels"><span>0 · Estable</span><span>10 · Caótico</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Ruido comunicacional</strong>¿Con qué frecuencia hay malentendidos, mensajes ambiguos o conflictos no resueltos?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-cnoise')"><span class="val-badge" id="v-cnoise">5.0</span></div>
+        <div class="scale-labels"><span>0 · Poco</span><span>10 · Frecuente</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Delay comunicacional</strong>¿Qué tan frecuentes son los silencios, retrasos o desincronizaciones?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-delay')"><span class="val-badge" id="v-delay">5.0</span></div>
+        <div class="scale-labels"><span>0 · Fluido</span><span>10 · Muy lento</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Latencia de reconexión</strong>¿Cuánto tarda normalmente una reparación o reconexión emocional?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-lat')"><span class="val-badge" id="v-lat">5.0</span></div>
+        <div class="scale-labels"><span>0 · Rápida</span><span>10 · Muy lenta</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Co-regulación efectiva</strong>¿Sentir apoyo o cercanía del otro reduce realmente tu estrés?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-coreg')"><span class="val-badge" id="v-coreg">6.0</span></div>
+        <div class="scale-labels"><span>0 · Nada</span><span>10 · Mucho</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Velocidad de reparación propia</strong>¿Qué tan rápido intentas reparar después de tensión o conflicto?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-rpspd')"><span class="val-badge" id="v-rpspd">6.0</span></div>
+        <div class="scale-labels"><span>0 · Lento</span><span>10 · Inmediato</span></div>
+      </div>
+
+      <div class="field">
+        <label><strong>Probabilidad de reparación bajo fatiga</strong>¿Qué tan probable es que hagas esfuerzos de acercamiento incluso estando agotado/a?</label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rpprob')"><span class="val-badge" id="v-rpprob">5.0</span></div>
+        <div class="scale-labels"><span>0 · Improbable</span><span>10 · Muy probable</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Submit ── -->
+  <button id="btn-run" onclick="runSimulation()">Ejecutar Simulación →</button>
+
+  <!-- ── Progress ── -->
+  <div id="progress">
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <div class="progress-label" id="progress-label">Enviando parámetros al servidor...</div>
+  </div>
+
+  <!-- ── Error ── -->
+  <div id="error-box"></div>
+
+  <!-- ════════════════════════════════════════
+       RESULTADOS
+  ════════════════════════════════════════ -->
+  <div id="results">
+    <div class="results-header">── Resultados de la Simulación ──────────────────</div>
+
+    <img id="chart-img" src="" alt="Gráfica RA-EEM">
+
+    <div class="attractor-box">
+      <div class="label">Atractor Relacional</div>
+      <div class="value" id="r-attractor">—</div>
+    </div>
+
+    <div class="pheno-grid" id="pheno-grid"></div>
+
+    <div style="margin-top:16px">
+      <div class="results-header">── Patrones Emergentes ───────────────────────────</div>
+      <div class="patterns-list" id="patterns-list"></div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="results-header">── Estadísticas de Simulación ───────────────────</div>
+      <table class="stats-table" id="stats-table"></table>
+    </div>
+
+    <div class="dl-row">
+      <a id="dl-png" class="btn-dl png" href="#" download="raeem_simulacion.png">⬇ Descargar gráfica (.png)</a>
+      <a id="dl-json" class="btn-dl json" href="#" download="raeem_resultado.json">⬇ Descargar resultado (.json)</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Archetypes data ────────────────────────────────────────
+const ARCHETYPES = {
+  ROMANTIC:     ['SECURE_PARTNER','ANXIOUS_PURSUER','AVOIDANT_WITHDRAWER','DISORGANIZED_PARTNER','HOT_COLD_DYNAMIC','EMOTIONALLY_UNAVAILABLE'],
+  PROFESSIONAL: ['COLLABORATIVE_PEER','BOSS_MICROMANAGER','EMOTIONALLY_DETACHED_MANAGER','HIGH_PRESSURE_SUPERVISOR','UNPREDICTABLE_AUTHORITY','PASSIVE_AGGRESSIVE_COWORKER'],
+  SOCIAL:       ['SUPPORTIVE_FRIEND','INCONSISTENT_FRIEND','SOCIAL_AVOIDANT','DOMINANT_PERSONALITY','VALIDATING_COMPANION','CHAOTIC_SOCIAL_NODE'],
+  FAMILIAL:     ['SECURE_ATTACHMENT_FIGURE','CRITICAL_PARENT','EMOTIONALLY_ABSENT','OVERPROTECTIVE_FIGURE','UNPREDICTABLE_CAREGIVER','FUSED_BOUNDARY_DYNAMIC'],
+};
+
+function updateArchetypes() {
+  const ctx = document.getElementById('context-type').value;
+  const sel = document.getElementById('archetype');
+  sel.innerHTML = '';
+  ARCHETYPES[ctx].forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a.replace(/_/g,' ');
+    sel.appendChild(o);
+  });
+}
+updateArchetypes();
+
+// ── Helpers ────────────────────────────────────────────────
+function syncVal(input, id) {
+  document.getElementById(id).textContent = parseFloat(input.value).toFixed(2);
+}
+function getVal(id) { return parseFloat(document.getElementById(id).textContent); }
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+function toggleCustomProfile() {
+  const on = document.getElementById('use-custom').checked;
+  document.getElementById('custom-profile-block').classList.toggle('visible', on);
+}
+
+// ── Server test ────────────────────────────────────────────
+async function testConnection() {
+  const url = document.getElementById('server-url').value.trim().replace(/\/$/, '');
+  const dot = document.getElementById('conn-dot');
+  dot.className = 'dot';
+  try {
+    const r = await fetch(url + '/health', { method: 'GET', signal: AbortSignal.timeout(8000) });
+    if (r.ok) { dot.className = 'dot ok'; }
+    else { dot.className = 'dot err'; }
+  } catch(e) { dot.className = 'dot err'; }
+}
+
+// ── Build params ───────────────────────────────────────────
+function buildParams() {
+  const g = getVal;
+
+  const sec = g('v-sec'), anx = g('v-anx'), avi = g('v-avi'), dis = g('v-dis');
+  const tot = sec + anx + avi + dis || 1;
+  const w_s = sec/tot, w_a = anx/tot, w_e = avi/tot, w_d = dis/tot;
+
+  const mask = g('v-mask')/10, emp = g('v-emp')/10, age = g('v-age')/10;
+  const lambda_r = 0.2 + mask * 0.8;
+  const lambda_g = 0.1 + emp * 0.5;
+  const A = (age * 2.0) - 1.0;
+
+  const bspd = g('v-bspd')/10, rspd = g('v-rspd')/10;
+  const hca = g('v-hca')/10, eca = g('v-eca')/10;
+  const alpha = 0.005 + bspd * 0.04;
+  const beta  = 0.01  + rspd * 0.08;
+  const eta_symp = 0.0005 + hca * 0.005;
+  const eta_evit = 0.0005 + eca * 0.005;
+
+  const thr = g('v-thr')/10, rep = g('v-rep')/10;
+  const hyp = g('v-hyp')/10, neg = g('v-neg')/10;
+  const chi   = 1.0 + thr * 2.5;
+  const kappa = 0.8 + rep * 2.0;
+  const P_default = 0.4 + hyp * 0.55;
+  const gamma_minus = 0.015 + neg * 0.05;
+  const gamma_plus  = 0.01  + rep * 0.03;
+
+  const env = g('v-env'), cnoise = g('v-cnoise'), delay = g('v-delay'), lat = g('v-lat');
+  const env_noise = (env + cnoise + delay) / 30.0;
+  const noise_sigma = +(0.01 + env_noise * 0.14).toFixed(3);
+  const tau = Math.round(5 + lat * 2.5);
+
+  const coreg = g('v-coreg')/10, rpspd = g('v-rpspd')/10, rpprob = g('v-rpprob')/10;
+  const zeta = 0.005 + coreg * 0.05;
+  const repair_threshold   = 0.8 - rpspd * 0.6;
+  const repair_probability = 0.02 + rpprob * 0.25;
+
+  let stress_profile = 'LOW_NOISE_STABLE';
+  if (noise_sigma >= 0.08) stress_profile = 'HIGH_ENTROPY_EDGE';
+  else if (noise_sigma >= 0.03) stress_profile = 'REALISTIC_DYNAMIC';
+  if (noise_sigma >= 0.15) stress_profile = 'CHAOTIC_COLLAPSE_RISK';
+
+  // Alter
+  const ctx  = document.getElementById('context-type').value;
+  const arch = document.getElementById('archetype').value;
+  const useCustom = document.getElementById('use-custom').checked;
+  let custom_profile = null;
+
+  if (useCustom) {
+    const sliders = document.querySelectorAll('#custom-profile-block input[type=range]');
+    const ids = ['v-ws-j','v-wa-j','v-we-j','v-wd-j','v-g-j','v-a-j','v-p-j'];
+    const keys = ['w_s','w_a','w_e','w_d','G','A','P_default'];
+    custom_profile = {};
+    keys.forEach((k,i) => custom_profile[k] = parseFloat(document.getElementById(ids[i]).textContent));
+  }
+
+  return {
+    lambda_s: +(0.8 + w_s).toFixed(3), lambda_r: +lambda_r.toFixed(3),
+    lambda_g: +lambda_g.toFixed(3), lambda_I: 0.05, sigma: 1.0,
+    kappa: +kappa.toFixed(3), chi: +chi.toFixed(3),
+    alpha: +alpha.toFixed(4), eta_symp: +eta_symp.toFixed(4), eta_evit: +eta_evit.toFixed(4),
+    beta: +beta.toFixed(4), p_burnout: 1.5, q_fatigue: 3,
+    alpha_a: 0.02, alpha_e: 0.01,
+    gamma_plus: +gamma_plus.toFixed(4), gamma_minus: +gamma_minus.toFixed(4),
+    nu: 0.08, mu_a: 0.2, delta_a: 0.08, mu_e: 0.1, delta_e: 0.05,
+    tau, rho_e: 0.04,
+    repair_threshold: +repair_threshold.toFixed(3),
+    repair_probability: +repair_probability.toFixed(3),
+    repair_strength: 0.8, zeta: +zeta.toFixed(4), noise_sigma,
+    _derived_agent_profile: { w_s: +w_s.toFixed(3), w_a: +w_a.toFixed(3), w_e: +w_e.toFixed(3), w_d: +w_d.toFixed(3), A: +A.toFixed(3), P_default: +P_default.toFixed(3) },
+    _stress_profile: stress_profile,
+    _alter_settings: { context_type: ctx, archetype: arch, custom_profile }
+  };
+}
+
+// ── Run simulation ─────────────────────────────────────────
+async function runSimulation() {
+  const serverUrl = document.getElementById('server-url').value.trim().replace(/\/$/, '');
+  if (!serverUrl) { showError('⚠️  Ingresa la URL del servidor Colab antes de ejecutar.'); return; }
+
+  const params = buildParams();
+
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+
+  const prog = document.getElementById('progress');
+  prog.style.display = 'block';
+  setProgressLabel('Enviando parámetros al servidor...');
+
+  try {
+    setProgressLabel('Simulando 500 ticks dinámicos...');
+    const resp = await fetch(serverUrl + '/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+      signal: AbortSignal.timeout(90000)
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ error: resp.statusText }));
+      throw new Error(err.error || 'Error del servidor');
+    }
+
+    setProgressLabel('Procesando firma fenotípica...');
+    const data = await resp.json();
+
+    prog.style.display = 'none';
+    renderResults(data, params);
+
+  } catch(e) {
+    prog.style.display = 'none';
+    showError('❌ ' + e.message + '\n\nVerifica que el servidor Colab esté corriendo y la URL sea correcta.');
+  } finally {
+    document.getElementById('btn-run').disabled = false;
+  }
+}
+
+function setProgressLabel(t) { document.getElementById('progress-label').textContent = t; }
+function showError(msg) {
+  const b = document.getElementById('error-box');
+  b.style.display = 'block';
+  b.textContent = msg;
+}
+
+// ── Render results ─────────────────────────────────────────
+function renderResults(data, params) {
+  const ph = data.phenotype;
+
+  // Chart
+  document.getElementById('chart-img').src = data.image_base64;
+
+  // Attractor
+  document.getElementById('r-attractor').textContent =
+    ph.relational_stability.attractor_type.replace(/_/g,' ');
+
+  // Pheno cards
+  const cards = [
+    { title: 'Regulación', data: ph.regulation_profile },
+    { title: 'Perfil Predictivo', data: ph.predictive_profile },
+    { title: 'Estabilidad Relacional', data: ph.relational_stability },
+    { title: 'Energía', data: ph.energetic_profile },
+  ];
+  const grid = document.getElementById('pheno-grid');
+  grid.innerHTML = '';
+  cards.forEach(card => {
+    const div = document.createElement('div');
+    div.className = 'pheno-card';
+    div.innerHTML = `<h4>${card.title}</h4>` +
+      Object.entries(card.data).map(([k,v]) =>
+        `<div class="pheno-row"><span class="pheno-key">${k.replace(/_/g,' ')}</span><span class="pheno-val ${colorClass(v)}">${v}</span></div>`
+      ).join('');
+    grid.appendChild(div);
+  });
+
+  // Patterns
+  const pl = document.getElementById('patterns-list');
+  pl.innerHTML = '';
+  (ph.emergent_patterns || []).forEach(p => {
+    const s = document.createElement('span');
+    s.className = 'pattern-tag';
+    s.textContent = p.replace(/_/g,' ');
+    pl.appendChild(s);
+  });
+  if (!ph.emergent_patterns?.length) pl.innerHTML = '<span style="color:var(--muted);font-size:12px">ninguno detectado</span>';
+
+  // Stats
+  const tbl = document.getElementById('stats-table');
+  const stats = ph.simulation_statistics;
+  const statLabels = {
+    mean_H_i: 'H promedio · Sujeto', mean_H_j: 'H promedio · Alter',
+    std_H_i: 'Variabilidad H · Sujeto', std_H_j: 'Variabilidad H · Alter',
+    oscillations_i: 'Oscilaciones · Sujeto', oscillations_j: 'Oscilaciones · Alter',
+    lagged_resonance_ij: 'Resonancia retardada', peak_I_i: 'Angustia pico · Sujeto',
+    mean_I_i: 'Angustia media · Sujeto', angst_acceleration_i: 'Aceleración angustia',
+    max_C_i: 'Burnout máx · Sujeto', max_C_j: 'Burnout máx · Alter',
+    phase_entropy: 'Entropía de fase', repair_events_j: 'Eventos de reparación',
+  };
+  tbl.innerHTML = Object.entries(statLabels).map(([k,label]) =>
+    `<tr><td>${label}</td><td>${typeof stats[k] === 'number' ? stats[k].toFixed(4) : stats[k]}</td></tr>`
+  ).join('');
+
+  // Downloads
+  document.getElementById('dl-png').href = data.image_base64;
+  const jsonBlob = new Blob([JSON.stringify({ params, phenotype: ph }, null, 2)], { type: 'application/json' });
+  document.getElementById('dl-json').href = URL.createObjectURL(jsonBlob);
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function colorClass(v) {
+  const greens = ['high','very_high','burnout_resilient','minimal','fast','flexible','synchronized','hyper_resonant','active','co_regulatory','positive_bias','gradual_adaptation'];
+  const reds = ['low','fragile','chaotic','critical','explosive_shattering','brittle','hypervigilant','counter_regulated'];
+  const s = String(v).toLowerCase();
+  if (greens.some(g => s.includes(g))) return 'green';
+  if (reds.some(r => s.includes(r))) return 'red';
+  return 'orange';
+}
+</script>
+</body>
+</html>

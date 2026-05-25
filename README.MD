@@ -1,124 +1,342 @@
-# Especificación Arquitectónica: RA-EEM v0.3.3
-**Framework de Modelado Dinámico no Lineal para Sistemas Relacionales Complejos**
+# RA-EEM — Relational Allostatic Emergent Energy Model
 
-El modelo **RA-EEM v0.3.3** (Relational Architecture & Emotional Engine Model) formaliza matemáticamente la interacción de dos agentes acoplados mediante flujos asíncronos de información, filtros perceptivos condicionados por la memoria/trauma, y un motor de desgaste energético (*Burnout*) con mecanismos de reparación intermitente y co-regulación cruzada.
+## Resumen Ejecutivo del Proyecto
 
----
+RA-EEM (Relational Allostatic Emergent Energy Model) es un modelo computacional de simulación relacional diseñado para representar dinámicas vinculares complejas mediante sistemas acoplados de regulación emocional, percepción predictiva, memoria relacional y carga alostática.
 
-## 1. Espacio de Estados del Agente
+El proyecto combina:
 
-Cada agente representa un sistema dinámico denotado por el subíndice $i$ (siendo $j$ el compañero relacional). Su configuración interna se divide en tres capas según su velocidad operativa.
+- teoría de apego,
+- procesamiento predictivo,
+- teoría de sistemas dinámicos,
+- regulación alostática,
+- dinámica energética relacional,
+- y simulación estocástica.
 
-### A. Rasgos Basales Invariantes (Hardware Psíquico Lento)
-* $w_{s,i} \in [0, 1]$: Peso de **Seguridad/Autorregulación** basal.
-* $w_{a,i} \in [0, 1]$: Peso de **Reactividad Ansiosa** basal.
-* $w_{e,i} \in [0, 1]$: Peso de **Evitación Defensiva** basal.
-* $w_{d,i} \in [0, 1]$: Peso de **Desorganización** basal.
-* $G_i \in [0, 1]$: Coeficiente de **Heterorregulación/Empatía** identitaria.
-* $A_i \in [-1, 1]$: Métrica de **Agencia Estructural**.
-* $R_i \in [0, 1]$: Capacidad de **Regulación Consciente / Masking**.
-
-### B. Modos Reactivos Acumuladores (Velocidad Media)
-Operan como integradores diferenciales discretos (no sufren sobreescritura inmediata), acumulando inercia frente a shocks y disipando energía hacia sus líneas base estructurales:
-* $\tilde{w}_{a,i} \in [0, 1]$: Activación actual del **Modo Ansioso Persecutor**.
-* $\tilde{w}_{e,i} \in [0, 1]$: Activación actual del **Modo Evitativo Distanciador**.
-
-### C. Variables de Estado Dinámico (Velocidad Rápida)
-* $I_i \in [0, 1]$: **Angustia Latente** (Estado de alarma general del sistema).
-* $C_i \in [0, 1]$: **Desgaste Psíquico / Burnout** acumulado.
-* $E_i \in [-1, 1]$: **Expectativa Predictiva** sobre la conducta del otro.
-* $P_i \in [0, 1]$: **Rigidez Predictiva / Precisión Inferencia** (Resistencia al cambio de $E_i$).
-* $M_i \in [-1, 1]$: **Huella de Memoria Relacional** (Clima afectivo histórico acumulado).
+Su propósito no es diagnosticar clínicamente individuos reales, sino modelar patrones emergentes de interacción humana bajo distintas configuraciones psicológicas y ambientales.
 
 ---
 
-## 2. Pipeline Operacional por Tick
+# Objetivos del Sistema
 
-En cada paso discreto de tiempo $t$, el motor relacional ejecuta secuencialmente las siguientes fases algebraicas:
+El motor busca simular:
 
-### Fase 1: Extracción con Delay Coaxial ($\tau$)
-El procesamiento cognitivo del agente introduce un desfase temporal. La información conductual del entorno se extrae desde un búfer circular de tamaño $\tau$:
-$$H_{j,\text{delayed}} = H_j(t - \tau)$$
-$$H_{i,\text{delayed}} = H_i(t - \tau)$$
+- vínculos seguros,
+- díadas ansioso/evitativas,
+- colapso relacional,
+- co-regulación,
+- resiliencia bajo ruido ambiental,
+- reparación intermitente,
+- desgaste metabólico,
+- y estabilidad dinámica emergente.
 
-### Fase 2: Errores Predictivos
-El error de predicción bruto $\epsilon_i$ mide la divergencia entre la conducta esperada y la percibida asíncronamente. Se escala por la rigidez de inferencia $P_i$ para obtener el error efectivo $\epsilon_i^{\text{eff}}$:
-$$\epsilon_i(t) = H_{j,\text{delayed}} - E_i(t-1)$$
-$$\epsilon_i^{\text{eff}}(t) = P_i \cdot \epsilon_i(t)$$
+La arquitectura está diseñada para permitir:
 
-### Fase 3: Modulación del Filtro Perceptivo Saliencial
-La conducta retrasada del compañero se distorsiona emocionalmente según el signo del error efectivo y la magnitud de la huella de memoria relacional $M_i$:
-
-$$\hat{H}_{ji} = \begin{cases} 
-H_{j,\text{delayed}} \cdot \left(1.0 + \kappa \cdot \max(0.0, \epsilon_i^{\text{eff}}) \cdot |M_i|\right) & \text{si } \epsilon_i^{\text{eff}} \ge 0 \\
-H_{j,\text{delayed}} \cdot \left(1.0 + \chi \cdot \max(0.0, -\epsilon_i^{\text{eff}}) \cdot |M_i|\right) & \text{si } \epsilon_i^{\text{eff}} < 0 
-\end{cases}$$
-
-> **Nota de asimetría:** Si el error es negativo (amenaza o decepción no anticipada), se aplica el coeficiente de penalización por sesgo defensivo $\chi$, tradicionalmente superior al parámetro de alivio $\kappa$.
-
-### Fase 4: Ecuaciones Diferenciales de Modos Rápidos
-Los modos reactivos se modelan como sistemas diferenciales discretos reales con disipación proporcional a la distancia de sus rasgos base ($w_a, w_e$):
-
-* **Modo Ansioso Persecutor ($\tilde{w}_a$):** Se incrementa directamente ante errores predictivos positivos condicionados por el clima histórico.
-$$\tilde{w}_{a,i}(t) = \tilde{w}_{a,i}(t-1) + \mu_a \cdot \max(0.0, \epsilon_i^{\text{eff}}) \cdot |M_i| - \delta_a \cdot (\tilde{w}_{a,i}(t-1) - w_{a,i})$$
-
-* **Modo Evitativo Distanciador ($\tilde{w}_e$):** Se incrementa de forma endógena proporcional al nivel de angustia o estrés latente interno $I_i$.
-$$\tilde{w}_{e,i}(t) = \tilde{w}_{e,i}(t-1) + \mu_e \cdot I_i(t-1) - \delta_e \cdot (\tilde{w}_{e,i}(t-1) - w_{e,i})$$
-
-### Fase 5: Motor de Emisión Conductual ($H$)
-Cada agente proyecta un valor conductual $H \in [-1, 1]$ a través de una función de transferencia no lineal acotada (tangente hiperbólica).
-
-#### Mecanismo de Reparación Intermitente
-Si un agente con características evitativas estructurales ($w_{e,i} > 0.45$) detecta que el estrés de su compañero supera el umbral crítico (`repair_threshold`), dispone de una probabilidad estocástica (`repair_probability`) de gatillar un esfuerzo compensatorio de contención relacional:
-$$\Omega_{\text{repair}} = \begin{cases} \text{repair\_strength} & \text{si se cumplen las condiciones estocásticas} \\ 0.0 & \text{en cualquier otro caso} \end{cases}$$
-
-#### Ecuación de Emisión Principal
-La capacidad pro-social y ejecutiva del agente es comprimida de manera lineal por el nivel de Burnout actual $(1 - C_i)$, mientras que los modos reactivos actúan como fuerzas de sustracción directa. Se inyecta ruido blanco gaussiano para simular perturbaciones ambientales:
-$$\text{raw}_i = \left(\lambda_s w_{s,i} + \lambda_r R_i + \lambda_g G_i + \Omega_{\text{repair}}\right) \cdot (1.0 - C_i) - \sigma \cdot (\tilde{w}_{a,i} + \tilde{w}_{e,i})$$
-$$H_i(t) = \tanh\left(	ext{raw}_i + \mathcal{N}(0, \sigma_{\text{noise}}^2)\right)$$
-
-### Fase 6: Homeostasis Afectiva (Angustia y Carga Alostática)
-* **Dinámica de Angustia Latente ($I$):** Alterada por el signo de la conducta filtrada del compañero. Emisiones percibidas como hostiles ($\hat{H} < 0$) elevan la angustia en proporción a la vulnerabilidad del sujeto $(1 - w_s)$. Conductas prosociales la mitigan utilizando la base de seguridad $w_s$.
-$$\Delta I_i = \max(0.0, -\hat{H}_{ji}) \cdot (1.0 - w_{s,i}) - \max(0.0, \hat{H}_{ji}) \cdot w_{s,i}$$
-$$I_i(t) = \text{clip}(I_i(t-1) + \Delta I_i, 0.0, 1.0)$$
-
-* **Dinámica de Burnout / Desgaste Energético ($C$):** La angustia sostenida inyecta fatiga a una tasa $\alpha$. La recuperación metabólica autónoma $\beta$ está penalizada por el exponente de histéresis crónico $p_{\text{burnout}}$ y protegida por la seguridad $w_s$. Adicionalmente, se introduce el amortiguador de **co-regulación cruzada** $\zeta$, donde las conductas prosociales efectivas del compañero alivian directamente el desgaste energético:
-$$\Delta C_i = \alpha \cdot I_i - \beta \cdot (1.0 - C_i)^{p_{\text{burnout}}} \cdot w_{s,i} - \zeta \cdot \max(0.0, H_j)$$
-$$C_i(t) = \text{clip}(C_i(t-1) + \Delta C_i, 0.0, 1.0)$$
-
-### Fase 7: Plasticidad de Memoria Relacional y Deriva de Expectativas
-* **Memoria Histórica Relacional ($M$):** Almacena el clima vincular promedio mediante tasas asimétricas de consolidación para experiencias positivas ($\gamma_+$) y traumáticas o negativas ($\gamma_-$).
-$$\Delta M_i = \gamma_+ \cdot \max(0.0, H_j) \cdot (1.0 - M_i) + \gamma_- \cdot \min(0.0, H_j) \cdot (1.0 + M_i)$$
-$$M_i(t) = \text{clip}(M_i(t-1) + \Delta M_i, -1.0, 1.0)$$
-
-* **Deriva del Modelo de Expectativas ($E$):** Las expectativas internas se desplazan de manera adaptativa hacia el comportamiento observado a una tasa de aprendizaje $\nu$, obstaculizada si la rigidez predictiva $P_i$ es elevada.
-$$E_i(t) = E_i(t-1) + \nu \cdot (1.0 - P_i) \cdot \epsilon_i(t)$$
+1. simulación fenomenológica,
+2. análisis topológico,
+3. clasificación de firmas vinculares,
+4. extracción de métricas dinámicas,
+5. y generación posterior de interpretaciones humanistas o psicológicas desacopladas del núcleo matemático.
 
 ---
 
-## 3. Matriz de Hiperparámetros Calibrados (Configuración v0.3.3)
+# Componentes Centrales del Modelo
 
-| Parámetro | Valor Numérico | Dominio Funcional y Conceptual |
-| :--- | :--- | :--- |
-| `lambda_s` | 1.2 | Peso del apego seguro autónomo en la emisión conductual. |
-| `lambda_r` | 0.5 | Capacidad de control ejecutivo consciente / Regulación activa. |
-| `lambda_g` | 0.3 | Ponderación del acoplamiento empático heterorregulatorio. |
-| `sigma` | 1.0 | Multiplicador de impacto de las activaciones defensivas rápidas. |
-| `kappa` | 1.6 | Ganancia perceptiva frente a errores de predicción positivos. |
-| `chi` | 2.2 | Sesgo de negatividad amplificado ante errores negativos (Amenazas). |
-| `alpha` | 0.04 | Tasa de inyección de angustia activa en desgaste psicofísico crónico. |
-| `beta` | 0.12 | Capacidad basal de metabolismo y disipación de la fatiga. |
-| `p_burnout` | 1.5 | Exponente de histéresis no lineal para simular el anclaje del agotamiento. |
-| `gamma_plus`| 0.015 | Velocidad de consolidación de confianza histórica en la memoria. |
-| `gamma_minus`| 0.04 | Velocidad de erosión y fijación de traumas en la memoria vincular. |
-| `nu` | 0.08 | Tasa base de actualización adaptativa del modelo interno (Inferencia). |
-| `mu_a` | 0.2 | Tasa de inyección del error en el acumulador del modo ansioso. |
-| `delta_a` | 0.08 | Coeficiente de disipación y relajación del modo ansioso. |
-| `mu_e` | 0.1 | Tasa de conversión de angustia interna en repliegue evitativo. |
-| `delta_e` | 0.05 | Coeficiente de disipación y relajación del modo evitativo. |
-| `tau` | 10 | Retraso temporal (ticks) del buffer de transporte de información. |
-| `repair_threshold` | 0.6 | Nivel de estrés del compañero requerido para gatillar reparación. |
-| `repair_probability`| 0.12 | Probabilidad por tick de que un evitativo rompa su defensa para asistir. |
-| `repair_strength` | 0.8 | Magnitud del impulso prosocial artificial inyectado en la reparación. |
-| `zeta` | 0.03 | Co-regulación cruzada: alivio alostático inducido por la bondad del otro. |
-| `noise_sigma` | 0.015 | Desviación estándar del ruido estocástico e indeterminado del entorno. |
+## 1. Emisión Conductual (`H`)
+
+Representa la conducta observable emitida por cada agente.
+
+La conducta emerge desde la interacción entre:
+
+- seguridad basal,
+- regulación consciente,
+- empatía,
+- angustia acumulada,
+- burnout,
+- activación ansiosa,
+- evitación defensiva,
+- y ruido ambiental.
+
+---
+
+## 2. Percepción Predictiva
+
+Cada agente interpreta la conducta del otro mediante:
+
+- filtros perceptivos,
+- expectativas internas (`E`),
+- memoria relacional (`M`),
+- sesgo de amenaza (`chi`),
+- sesgo de esperanza (`kappa`),
+- y retraso temporal (`tau`).
+
+El sistema no responde al estado objetivo del otro, sino a la experiencia subjetiva percibida.
+
+---
+
+## 3. Angustia (`I`)
+
+La angustia representa activación emocional acumulativa.
+
+Se incrementa mediante:
+
+- rechazo percibido,
+- inconsistencia relacional,
+- desfase predictivo,
+- o ausencia de co-regulación.
+
+La disipación ocurre mediante:
+
+- seguridad basal,
+- reparación,
+- regulación consciente,
+- y estabilidad relacional.
+
+---
+
+## 4. Burnout Relacional (`C`)
+
+Modela desgaste alostático y fatiga energética acumulativa.
+
+Permite representar:
+
+- colapso vincular,
+- agotamiento defensivo,
+- masking sostenido,
+- quiebre prefrontal,
+- y pérdida de capacidad regulatoria.
+
+---
+
+## 5. Memoria Relacional (`M`)
+
+La memoria se consolida sobre experiencia percibida y no sobre realidad objetiva.
+
+El sistema integra:
+
+- acumulación de confianza,
+- consolidación traumática,
+- persistencia afectiva,
+- y sesgo histórico de interpretación.
+
+---
+
+## 6. Ruido Ambiental (`noise_sigma`)
+
+Introduce incertidumbre estocástica en la dinámica.
+
+Permite simular:
+
+- fricción cotidiana,
+- errores comunicacionales,
+- ambigüedad emocional,
+- contextos impredecibles,
+- y entornos relacionales reales.
+
+---
+
+# Capacidades Actuales
+
+El sistema actualmente puede:
+
+- simular vínculos dinámicos bidireccionales,
+- generar retratos de fase relacionales,
+- detectar atractores dinámicos,
+- medir resonancia relacional,
+- calcular entropía topológica,
+- clasificar estabilidad sistémica,
+- detectar patrones emergentes,
+- medir carga alostática,
+- evaluar resiliencia energética,
+- y producir firmas fenotípicas estructuradas en JSON.
+
+---
+
+# Motor de Firma Fenotípica
+
+RA-EEM incluye un sistema analítico capaz de traducir simulaciones dinámicas en etiquetas estructurales consumibles por otros motores interpretativos.
+
+Ejemplo de dimensiones detectadas:
+
+- tolerancia al estrés,
+- capacidad de reparación,
+- estilo predictivo,
+- rigidez perceptiva,
+- resistencia al burnout,
+- sincronización relacional,
+- complejidad de fase,
+- y patrones emergentes de adaptación.
+
+Esto permite desacoplar:
+
+1. simulación matemática,
+2. análisis estructural,
+3. e interpretación psicológica.
+
+---
+
+# Arquitectura Conceptual
+
+El modelo se basa en la premisa de que:
+
+> La conducta observable es una manifestación emergente de sistemas predictivos energéticamente limitados interactuando bajo incertidumbre.
+
+El vínculo no es tratado como una suma de individuos, sino como:
+
+- un sistema dinámico acoplado,
+- con memoria,
+- histéresis,
+- retardos,
+- no linealidad,
+- y propiedades emergentes.
+
+---
+
+# Estado Actual del Proyecto
+
+Actualmente el sistema posee:
+
+- simulador funcional,
+- calibración energética estable,
+- perfiles ambientales,
+- sistema de estrés,
+- clasificación fenotípica,
+- extracción de métricas,
+- y generación automatizada de resúmenes analíticos.
+
+El modelo ya puede diferenciar entre:
+
+- colapso relacional,
+- homeostasis resiliente,
+- co-regulación funcional,
+- desincronización,
+- masking energético,
+- y dinámicas de burnout progresivo.
+
+---
+
+# Futuras Mejoras
+
+## 1. Sistema de Clasificación Multi-Escala
+
+Implementar:
+
+- tipologías vinculares,
+- clustering dinámico,
+- embeddings relacionales,
+- y clasificación automática de atractores.
+
+---
+
+## 2. Motor Narrativo Interpretativo
+
+Construir un sistema desacoplado capaz de convertir:
+
+- métricas,
+- firmas,
+- y patrones emergentes
+
+en:
+
+- interpretación psicológica,
+- lectura fenomenológica,
+- narrativa humanista,
+- o análisis clínico-estructural.
+
+---
+
+## 3. Simulación Multi-Agente
+
+Expandir el modelo desde díadas hacia:
+
+- grupos,
+- familias,
+- equipos,
+- comunidades,
+- y redes sociales complejas.
+
+---
+
+## 4. Adaptación Temporal Profunda
+
+Agregar:
+
+- aprendizaje relacional,
+- plasticidad estructural,
+- modificación de rasgos,
+- y evolución fenotípica longitudinal.
+
+---
+
+## 5. Eventos Externos y Trauma Ambiental
+
+Introducir:
+
+- shocks exógenos,
+- crisis contextuales,
+- abandono,
+- pérdida,
+- trauma agudo,
+- y reparación contextual.
+
+---
+
+## 6. Integración Neuroenergética
+
+Explorar:
+
+- modelos autonómicos,
+- carga simpática,
+- fatiga prefrontal,
+- regulación vagal,
+- y simulación energética multicapa.
+
+---
+
+## 7. Dashboard Analítico Interactivo
+
+Desarrollar:
+
+- panel visual,
+- explorador topológico,
+- timeline relacional,
+- comparador de perfiles,
+- y sistema de auditoría dinámica.
+
+---
+
+## 8. Exportación Semántica
+
+Permitir exportar:
+
+- JSON estructurado,
+- firmas fenotípicas,
+- embeddings,
+- métricas temporales,
+- y snapshots relacionales
+
+para interoperabilidad con otros sistemas.
+
+---
+
+# Visión de Largo Plazo
+
+RA-EEM apunta a convertirse en:
+
+- un laboratorio fenomenológico computacional,
+- una herramienta de investigación relacional,
+- un simulador de sistemas afectivos complejos,
+- y un motor generativo de dinámicas humanas emergentes.
+
+El objetivo final no es reducir lo humano a números, sino utilizar estructuras matemáticas para explorar:
+
+- regulación,
+- vulnerabilidad,
+- sincronización,
+- desgaste,
+- reparación,
+- y resiliencia relacional
+
+desde una perspectiva sistémica y emergente.
+
+---
