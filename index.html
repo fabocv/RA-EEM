@@ -263,7 +263,6 @@
   <div id="server-bar">
     <div class="dot" id="conn-dot"></div>
     <label>SERVIDOR →</label>
-    <input id="server-url" type="text" placeholder="https://xxxx.ngrok.io  (pega la URL de Colab aquí)" spellcheck="false">
     <button onclick="testConnection()" style="background:none;border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:var(--mono)">test</button>
   </div>
 
@@ -704,7 +703,7 @@ function buildParams() {
 
 // ── Run simulation ─────────────────────────────────────────
 async function runSimulation() {
-  const serverUrl = document.getElementById('server-url').value.trim().replace(/\/$/, '');
+  const serverUrl = "https://browsing-occultist-settle.ngrok-free.dev"
   if (!serverUrl) { showError('⚠️  Ingresa la URL del servidor Colab antes de ejecutar.'); return; }
 
   const params = buildParams();
