@@ -7,355 +7,211 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* ── Variables ─────────────────────────────────────────── */
   :root {
-    --bg:        #080c10;
-    --surface:   #0d1117;
-    --border:    #1e2d3d;
-    --border2:   #2a3f52;
-    --accent:    #4fa8e8;
-    --accent2:   #f97316;
-    --accent3:   #3fb950;
-    --text:      #cdd9e5;
-    --muted:     #6e8899;
-    --danger:    #ff7b72;
-    --mono:      'DM Mono', monospace;
-    --sans:      'Syne', sans-serif;
-    --radius:    6px;
+    --bg:#080c10; --surface:#0d1117; --border:#1e2d3d; --border2:#2a3f52;
+    --accent:#4fa8e8; --accent2:#f97316; --accent3:#3fb950;
+    --text:#cdd9e5; --muted:#6e8899; --danger:#ff7b72;
+    --mono:'DM Mono',monospace; --sans:'Syne',sans-serif; --radius:6px;
   }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:14px;min-height:100vh;line-height:1.6;}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4;}
+  #app{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:32px 24px 80px;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Header */
+  header{margin-bottom:28px;}
+  .logo{font-family:var(--sans);font-size:10px;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+  h1{font-family:var(--sans);font-size:22px;font-weight:800;color:white;line-height:1.1;}
+  h1 span{color:var(--accent);}
+  .subtitle{margin-top:6px;color:var(--muted);font-size:13px;max-width:540px;line-height:1.5;}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 14px;
-    min-height: 100vh;
-    line-height: 1.6;
-  }
+  /* Descripción breve */
+  .about-box{background:rgba(79,168,232,0.05);border:1px solid rgba(79,168,232,0.15);border-radius:var(--radius);padding:14px 16px;margin-bottom:24px;font-size:13px;color:var(--text);line-height:1.6;}
+  .about-box strong{color:var(--accent);font-family:var(--sans);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;}
 
-  /* ── Noise overlay ─────────────────────────────────────── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 0; opacity: 0.4;
-  }
+  /* Server bar */
+  #server-bar{display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:24px;}
+  #server-bar label{color:var(--muted);font-size:12px;white-space:nowrap;}
+  #server-url{flex:1;background:transparent;border:none;outline:none;color:var(--accent);font-family:var(--mono);font-size:12px;}
+  #server-url::placeholder{color:var(--border2);}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background 0.3s;}
+  .dot.ok{background:var(--accent3);box-shadow:0 0 6px var(--accent3);}
+  .dot.err{background:var(--danger);}
 
-  /* ── Layout ────────────────────────────────────────────── */
-  #app { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; padding: 40px 24px 80px; }
+  /* Progreso */
+  #progress-overview{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;}
+  .prog-pill{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:20px;font-size:11px;font-family:var(--sans);font-weight:600;border:1px solid var(--border);color:var(--muted);background:var(--surface);transition:all 0.2s;cursor:pointer;white-space:nowrap;}
+  .prog-pill.done{border-color:rgba(63,185,80,0.4);color:var(--accent3);background:rgba(63,185,80,0.07);}
+  .prog-pill.active{border-color:rgba(79,168,232,0.4);color:var(--accent);background:rgba(79,168,232,0.07);}
+  .pill-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
 
-  /* ── Header ────────────────────────────────────────────── */
-  header { margin-bottom: 48px; }
-  .logo { font-family: var(--sans); font-size: 11px; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
-  h1 { font-family: var(--sans); font-size: 32px; font-weight: 800; color: white; line-height: 1.1; }
-  h1 span { color: var(--accent); }
-  .subtitle { margin-top: 10px; color: var(--muted); font-size: 13px; max-width: 500px; }
+  /* Secciones */
+  .section{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;}
+  .section-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;background:var(--surface);user-select:none;transition:background 0.15s;}
+  .section-header:hover{background:#111820;}
+  .section-title{font-family:var(--sans);font-size:13px;font-weight:600;color:white;}
+  .section-tag{font-size:11px;color:var(--muted);}
+  .chevron{color:var(--muted);transition:transform 0.2s;font-size:11px;}
+  .section.open .chevron{transform:rotate(90deg);}
+  .section-body{padding:20px 18px 24px;border-top:1px solid var(--border);display:none;}
+  .section.open .section-body{display:block;}
 
-  /* ── Server config ─────────────────────────────────────── */
-  #server-bar {
-    display: flex; gap: 8px; align-items: center;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 10px 14px;
-    margin-bottom: 32px;
-  }
-  #server-bar label { color: var(--muted); font-size: 12px; white-space: nowrap; }
-  #server-url {
-    flex: 1; background: transparent; border: none; outline: none;
-    color: var(--accent); font-family: var(--mono); font-size: 12px;
-  }
-  #server-url::placeholder { color: var(--border2); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border2); flex-shrink: 0; transition: background 0.3s; }
-  .dot.ok { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
-  .dot.err { background: var(--danger); }
+  /* Fields */
+  .field{margin-bottom:20px;}
+  .field:last-child{margin-bottom:0;}
+  .field label{display:block;font-size:13px;color:var(--text);margin-bottom:8px;line-height:1.5;}
+  .field label .pregunta{display:block;font-size:12px;color:var(--muted);margin-top:3px;}
 
-  /* ── Section ───────────────────────────────────────────── */
-  .section {
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 16px;
-    overflow: hidden;
-  }
-  .section-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 18px; cursor: pointer;
-    background: var(--surface);
-    user-select: none;
-    transition: background 0.15s;
-  }
-  .section-header:hover { background: #111820; }
-  .section-title { font-family: var(--sans); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: white; }
-  .section-tag { font-size: 11px; color: var(--muted); font-family: var(--mono); }
-  .chevron { color: var(--muted); transition: transform 0.2s; font-size: 12px; }
-  .section.open .chevron { transform: rotate(90deg); }
-  .section-body { padding: 20px 18px 24px; border-top: 1px solid var(--border); display: none; }
-  .section.open .section-body { display: block; }
-
-  /* ── Fields ────────────────────────────────────────────── */
-  .field { margin-bottom: 20px; }
-  .field:last-child { margin-bottom: 0; }
-  .field label {
-    display: block; font-size: 12px; color: var(--muted);
-    margin-bottom: 8px; line-height: 1.4;
-  }
-  .field label strong { color: var(--text); display: block; margin-bottom: 2px; }
-
-  /* Slider con valor */
-  .slider-wrap { display: flex; gap: 12px; align-items: center; }
-  .slider-wrap input[type=range] {
-    flex: 1; -webkit-appearance: none; appearance: none;
-    height: 3px; background: var(--border2); border-radius: 2px; outline: none;
-  }
-  .slider-wrap input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 14px; height: 14px;
-    border-radius: 50%; background: var(--accent);
-    cursor: pointer; transition: transform 0.1s;
-  }
-  .slider-wrap input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); }
-  .val-badge {
-    min-width: 32px; text-align: center; font-size: 13px;
-    color: var(--accent); font-weight: 500;
-  }
-  .scale-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--border2); margin-top: 3px; }
+  /* Slider */
+  .slider-wrap{display:flex;gap:12px;align-items:center;}
+  .slider-wrap input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:3px;background:var(--border2);border-radius:2px;outline:none;}
+  .slider-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;transition:transform 0.1s;}
+  .slider-wrap input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
+  .val-badge{min-width:32px;text-align:center;font-size:13px;color:var(--accent);font-weight:500;}
+  .scale-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--border2);margin-top:3px;}
 
   /* Select */
-  select {
-    width: 100%; background: var(--bg); border: 1px solid var(--border2);
-    color: var(--text); font-family: var(--mono); font-size: 13px;
-    padding: 9px 12px; border-radius: var(--radius); outline: none;
-    cursor: pointer; appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236e8899' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 12px center;
-  }
-  select:focus { border-color: var(--accent); }
+  select{width:100%;background:var(--bg);border:1px solid var(--border2);color:var(--text);font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:var(--radius);outline:none;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236e8899' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+  select:focus{border-color:var(--accent);}
 
-  /* Checkbox toggle */
-  .toggle-wrap { display: flex; align-items: center; gap: 12px; }
-  .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .toggle-slider {
-    position: absolute; inset: 0; background: var(--border2);
-    border-radius: 11px; cursor: pointer; transition: background 0.2s;
-  }
-  .toggle-slider:before {
-    content: ''; position: absolute; width: 16px; height: 16px;
-    left: 3px; bottom: 3px; background: white; border-radius: 50%;
-    transition: transform 0.2s;
-  }
-  .toggle input:checked + .toggle-slider { background: var(--accent); }
-  .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
-  .toggle-label { font-size: 12px; color: var(--muted); }
+  /* Toggle */
+  .toggle-wrap{display:flex;align-items:center;gap:12px;}
+  .toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+  .toggle input{opacity:0;width:0;height:0;}
+  .toggle-slider{position:absolute;inset:0;background:var(--border2);border-radius:11px;cursor:pointer;transition:background 0.2s;}
+  .toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:transform 0.2s;}
+  .toggle input:checked + .toggle-slider{background:var(--accent);}
+  .toggle input:checked + .toggle-slider:before{transform:translateX(18px);}
+  .toggle-label{font-size:12px;color:var(--muted);}
+  #custom-profile-block{display:none;margin-top:16px;}
+  #custom-profile-block.visible{display:block;}
+  .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 
-  /* Custom profile grid */
-  #custom-profile-block { display: none; margin-top: 16px; }
-  #custom-profile-block.visible { display: block; }
-  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* Submit */
+  #btn-run{width:100%;padding:16px;margin-top:20px;background:var(--accent);color:#080c10;border:none;border-radius:var(--radius);font-family:var(--sans);font-size:15px;font-weight:700;letter-spacing:0.05em;cursor:pointer;transition:opacity 0.2s,transform 0.1s;}
+  #btn-run:hover{opacity:0.88;}
+  #btn-run:active{transform:scale(0.99);}
+  #btn-run:disabled{opacity:0.4;cursor:not-allowed;}
 
-  /* ── Submit ────────────────────────────────────────────── */
-  #btn-run {
-    width: 100%; padding: 16px; margin-top: 24px;
-    background: var(--accent); color: #080c10;
-    border: none; border-radius: var(--radius);
-    font-family: var(--sans); font-size: 15px; font-weight: 700;
-    letter-spacing: 0.05em; cursor: pointer;
-    transition: opacity 0.2s, transform 0.1s;
-  }
-  #btn-run:hover { opacity: 0.88; }
-  #btn-run:active { transform: scale(0.99); }
-  #btn-run:disabled { opacity: 0.4; cursor: not-allowed; }
+  /* Loading */
+  #progress{display:none;margin-top:20px;}
+  .progress-bar{height:2px;background:var(--border);border-radius:1px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--accent);animation:prog 2s ease-in-out infinite;}
+  @keyframes prog{0%{width:0%;margin-left:0}50%{width:70%;margin-left:15%}100%{width:0%;margin-left:100%}}
+  .progress-label{font-size:12px;color:var(--muted);margin-top:8px;text-align:center;}
 
-  /* ── Progress ──────────────────────────────────────────── */
-  #progress { display: none; margin-top: 20px; }
-  .progress-bar { height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
-  .progress-fill { height: 100%; background: var(--accent); animation: prog 2s ease-in-out infinite; }
-  @keyframes prog { 0% { width: 0%; margin-left: 0; } 50% { width: 70%; margin-left: 15%; } 100% { width: 0%; margin-left: 100%; } }
-  .progress-label { font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center; }
+  /* Error */
+  #error-box{display:none;margin-top:16px;padding:12px 16px;background:rgba(255,123,114,0.08);border:1px solid rgba(255,123,114,0.3);border-radius:var(--radius);color:var(--danger);font-size:13px;white-space:pre-line;}
 
-  /* ── Error ─────────────────────────────────────────────── */
-  #error-box {
-    display: none; margin-top: 16px; padding: 12px 16px;
-    background: rgba(255,123,114,0.08); border: 1px solid rgba(255,123,114,0.3);
-    border-radius: var(--radius); color: var(--danger); font-size: 13px;
-  }
+  /* Results */
+  #results{display:none;margin-top:32px;}
+  .results-header{font-family:var(--sans);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+  #chart-img{width:100%;border-radius:var(--radius);border:1px solid var(--border);display:block;}
+  .attractor-box{margin-top:12px;padding:12px 16px;background:rgba(79,168,232,0.06);border:1px solid rgba(79,168,232,0.2);border-radius:var(--radius);text-align:center;}
+  .attractor-box .label{font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;}
+  .attractor-box .value{font-family:var(--sans);font-size:16px;font-weight:700;color:var(--accent);}
+  .pheno-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .pheno-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+  .pheno-card h4{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .pheno-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px;gap:8px;}
+  .pheno-row:last-child{margin-bottom:0;}
+  .pheno-key{color:var(--muted);}
+  .pheno-val{color:var(--accent);font-weight:500;text-align:right;}
+  .pheno-val.green{color:var(--accent3);}
+  .pheno-val.orange{color:var(--accent2);}
+  .pheno-val.red{color:var(--danger);}
+  .patterns-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .pattern-tag{padding:4px 10px;border-radius:20px;font-size:11px;background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.3);color:var(--accent3);}
+  .stats-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12px;}
+  .stats-table tr{border-bottom:1px solid var(--border);}
+  .stats-table td{padding:6px 8px;}
+  .stats-table td:first-child{color:var(--muted);font-size:11px;}
+  .stats-table td:last-child{text-align:right;color:var(--text);font-weight:500;}
+  .dl-row{display:flex;gap:12px;margin-top:20px;}
+  .btn-dl{flex:1;padding:11px;text-align:center;border-radius:var(--radius);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:opacity 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-dl:hover{opacity:0.82;}
+  .btn-dl.png{background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);color:var(--accent2);}
+  .btn-dl.json{background:rgba(79,168,232,0.12);border:1px solid rgba(79,168,232,0.3);color:var(--accent);}
 
-  /* ── Results ───────────────────────────────────────────── */
-  #results { display: none; margin-top: 32px; }
-  .results-header {
-    font-family: var(--sans); font-size: 11px; letter-spacing: 0.15em;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
-  }
+  /* Prompt button */
+  #btn-prompt{width:100%;padding:14px;margin-top:12px;background:transparent;border:1px solid var(--border2);color:var(--muted);border-radius:var(--radius);font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:0.04em;cursor:pointer;transition:border-color 0.2s,color 0.2s,background 0.2s;display:none;align-items:center;justify-content:center;gap:10px;}
+  #btn-prompt:hover{border-color:var(--accent);color:var(--accent);background:rgba(79,168,232,0.05);}
 
-  /* Image */
-  #chart-img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); display: block; }
+  /* Modal */
+  #prompt-modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(8,12,16,0.88);backdrop-filter:blur(6px);padding:24px 16px;overflow-y:auto;}
+  #prompt-modal.open{display:flex;align-items:flex-start;justify-content:center;}
+  .modal-box{background:var(--surface);border:1px solid var(--border2);border-radius:8px;width:100%;max-width:720px;margin:auto;overflow:hidden;animation:modalIn 0.18s ease;}
+  @keyframes modalIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .modal-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .modal-header h3{font-family:var(--sans);font-size:14px;font-weight:700;color:white;}
+  .modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;border-radius:4px;transition:color 0.15s;}
+  .modal-close:hover{color:white;}
+  .modal-body{padding:20px;}
+  #prompt-textarea{width:100%;min-height:460px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.7;padding:16px;resize:vertical;outline:none;}
+  #prompt-textarea:focus{border-color:var(--border2);}
+  .modal-footer{display:flex;gap:10px;margin-top:12px;}
+  .btn-copy{flex:1;padding:11px;background:var(--accent);color:#080c10;border:none;border-radius:var(--radius);font-family:var(--sans);font-size:13px;font-weight:700;cursor:pointer;transition:opacity 0.2s;}
+  .btn-copy:hover{opacity:0.85;}
+  .btn-copy.copied{background:var(--accent3);}
+  .btn-modal-dl{padding:11px 16px;background:transparent;border:1px solid var(--border2);color:var(--muted);border-radius:var(--radius);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;transition:border-color 0.15s,color 0.15s;white-space:nowrap;}
+  .btn-modal-dl:hover{border-color:var(--accent);color:var(--accent);}
 
-  /* Phenotype cards */
-  .pheno-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-  .pheno-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 14px 16px;
-  }
-  .pheno-card h4 { font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
-  .pheno-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; gap: 8px; }
-  .pheno-row:last-child { margin-bottom: 0; }
-  .pheno-key { color: var(--muted); }
-  .pheno-val { color: var(--accent); font-weight: 500; text-align: right; }
-  .pheno-val.green { color: var(--accent3); }
-  .pheno-val.orange { color: var(--accent2); }
-  .pheno-val.red { color: var(--danger); }
-
-  /* Attractor highlight */
-  .attractor-box {
-    margin-top: 12px; padding: 12px 16px;
-    background: rgba(79,168,232,0.06); border: 1px solid rgba(79,168,232,0.2);
-    border-radius: var(--radius); text-align: center;
-  }
-  .attractor-box .label { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
-  .attractor-box .value { font-family: var(--sans); font-size: 16px; font-weight: 700; color: var(--accent); }
-
-  /* Patterns */
-  .patterns-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-  .pattern-tag {
-    padding: 4px 10px; border-radius: 20px; font-size: 11px;
-    background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3);
-    color: var(--accent3); font-family: var(--mono);
-  }
-
-  /* Stats table */
-  .stats-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
-  .stats-table tr { border-bottom: 1px solid var(--border); }
-  .stats-table td { padding: 6px 8px; }
-  .stats-table td:first-child { color: var(--muted); font-size: 11px; }
-  .stats-table td:last-child { text-align: right; color: var(--text); font-weight: 500; }
-
-  /* Download buttons */
-  .dl-row { display: flex; gap: 12px; margin-top: 20px; }
-  .btn-dl {
-    flex: 1; padding: 11px; text-align: center;
-    border-radius: var(--radius); font-family: var(--sans);
-    font-size: 13px; font-weight: 600; cursor: pointer;
-    text-decoration: none; transition: opacity 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-  .btn-dl:hover { opacity: 0.82; }
-  .btn-dl.png { background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.4); color: var(--accent2); }
-  .btn-dl.json { background: rgba(79,168,232,0.12); border: 1px solid rgba(79,168,232,0.3); color: var(--accent); }
-
-  /* ── Prompt button ─────────────────────────────────────── */
-  #btn-prompt {
-    width: 100%; padding: 14px; margin-top: 12px;
-    background: transparent;
-    border: 1px solid var(--border2);
-    color: var(--muted);
-    border-radius: var(--radius);
-    font-family: var(--sans); font-size: 14px; font-weight: 600;
-    letter-spacing: 0.04em; cursor: pointer;
-    transition: border-color 0.2s, color 0.2s, background 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-  }
-  #btn-prompt:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,168,232,0.05); }
-
-  /* ── Modal ─────────────────────────────────────────────── */
-  #prompt-modal {
-    display: none; position: fixed; inset: 0; z-index: 100;
-    background: rgba(8,12,16,0.88); backdrop-filter: blur(6px);
-    padding: 24px 16px; overflow-y: auto;
-  }
-  #prompt-modal.open { display: flex; align-items: flex-start; justify-content: center; }
-  .modal-box {
-    background: var(--surface); border: 1px solid var(--border2);
-    border-radius: 8px; width: 100%; max-width: 720px;
-    margin: auto; overflow: hidden;
-    animation: modalIn 0.18s ease;
-  }
-  @keyframes modalIn { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: none; } }
-  .modal-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 16px 20px; border-bottom: 1px solid var(--border);
-  }
-  .modal-header h3 { font-family: var(--sans); font-size: 14px; font-weight: 700; color: white; }
-  .modal-close {
-    background: none; border: none; color: var(--muted); cursor: pointer;
-    font-size: 20px; line-height: 1; padding: 2px 6px;
-    border-radius: 4px; transition: color 0.15s;
-  }
-  .modal-close:hover { color: white; }
-  .modal-body { padding: 20px; }
-  #prompt-textarea {
-    width: 100%; min-height: 460px; background: var(--bg);
-    border: 1px solid var(--border); border-radius: var(--radius);
-    color: var(--text); font-family: var(--mono); font-size: 12px;
-    line-height: 1.7; padding: 16px; resize: vertical; outline: none;
-  }
-  #prompt-textarea:focus { border-color: var(--border2); }
-  .modal-footer {
-    display: flex; gap: 10px; margin-top: 12px;
-  }
-  .btn-copy {
-    flex: 1; padding: 11px; background: var(--accent); color: #080c10;
-    border: none; border-radius: var(--radius); font-family: var(--sans);
-    font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
-  }
-  .btn-copy:hover { opacity: 0.85; }
-  .btn-copy.copied { background: var(--accent3); }
-  .btn-modal-dl {
-    padding: 11px 16px; background: transparent;
-    border: 1px solid var(--border2); color: var(--muted);
-    border-radius: var(--radius); font-family: var(--sans);
-    font-size: 13px; font-weight: 600; cursor: pointer; transition: border-color 0.15s, color 0.15s;
-    white-space: nowrap;
-  }
-  .btn-modal-dl:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* ── Responsive ────────────────────────────────────────── */
-  @media (max-width: 520px) {
-    .pheno-grid { grid-template-columns: 1fr; }
-    .profile-grid { grid-template-columns: 1fr; }
-    .dl-row { flex-direction: column; }
+  @media(max-width:520px){
+    .pheno-grid{grid-template-columns:1fr;}
+    .profile-grid{grid-template-columns:1fr;}
+    .dl-row{flex-direction:column;}
+    #progress-overview{gap:4px;}
   }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- ── Header ── -->
   <header>
-    <div class="logo">Modelo Computacional Relacional</div>
-    <h1>RA-EEM <span>//</span> Simulador</h1>
-    <p class="subtitle">Relational Allostatic Emergent Energy Model · v0.3.4 · Responde el cuestionario para simular la dinámica del vínculo.</p>
+    <div class="logo">Simulador de vínculos · v0.3.4</div>
+    <h1>RA-EEM <span>//</span> ¿Cómo funciona esta relación?</h1>
   </header>
 
-  <!-- ── Server URL ── -->
-  <div id="server-bar">
-    <div class="dot" id="conn-dot"></div>
-    <label>SERVIDOR →</label>
-    <input id="server-url" type="text" placeholder="https://xxxx.ngrok.io  (pega la URL de Colab aquí)" spellcheck="false">
-    <button onclick="testConnection()" style="background:none;border:1px solid var(--border2);color:var(--muted);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:var(--mono)">test</button>
+  <div class="about-box">
+    <strong>¿Para qué sirve esto?</strong>
+    Responde una serie de preguntas sobre ti y sobre la persona con la que quieres explorar el vínculo. El simulador modela cómo interactúan emocionalmente, qué patrones emergen, y cuánto se desgasta cada uno. Al final puedes descargar los resultados o generar un resumen para conversar con un profesional.
   </div>
 
-  <!-- ════════════════════════════════════════
-       SECCIÓN 1: ALTER
-  ════════════════════════════════════════ -->
+  <!-- Progreso visual -->
+  <div id="progress-overview">
+    <div class="prog-pill active" id="pill-s-alter" onclick="jumpTo('s-alter')"><span class="pill-dot"></span>¿Con quién?</div>
+    <div class="prog-pill" id="pill-s-apego" onclick="jumpTo('s-apego')"><span class="pill-dot"></span>Tu apego</div>
+    <div class="prog-pill" id="pill-s-reg" onclick="jumpTo('s-reg')"><span class="pill-dot"></span>Cómo te manejas</div>
+    <div class="prog-pill" id="pill-s-burn" onclick="jumpTo('s-burn')"><span class="pill-dot"></span>Desgaste</div>
+    <div class="prog-pill" id="pill-s-perc" onclick="jumpTo('s-perc')"><span class="pill-dot"></span>Cómo interpretas</div>
+    <div class="prog-pill" id="pill-s-env" onclick="jumpTo('s-env')"><span class="pill-dot"></span>El entorno</div>
+  </div>
+
+  <!-- SECCIÓN 1 -->
   <div class="section open" id="s-alter">
     <div class="section-header" onclick="toggleSection('s-alter')">
-      <span class="section-title">① Configuración del Alter</span>
-      <span><span class="section-tag">¿con quién?</span> <span class="chevron">▶</span></span>
+      <span class="section-title">① ¿Con quién es este vínculo?</span>
+      <span><span class="section-tag">la otra persona</span> <span class="chevron">▶</span></span>
     </div>
     <div class="section-body">
 
       <div class="field">
-        <label><strong>Contexto del vínculo</strong>¿Qué tipo de relación es la que quieres simular?</label>
-        <select id="context-type" onchange="updateArchetypes()">
+        <label>¿Qué tipo de relación es?
+          <span class="pregunta">Elige la que mejor describe el vínculo que quieres explorar.</span>
+        </label>
+        <select id="context-type" onchange="updateArchetypes(); markDone('s-alter')">
+          <option value="FAMILIAL">Familiar</option>
           <option value="ROMANTIC">Romántica / Pareja</option>
-          <option value="PROFESSIONAL">Profesional / Laboral</option>
-          <option value="SOCIAL">Social / Amistad</option>
-          <option value="FAMILIAL" selected>Familiar</option>
+          <option value="PROFESSIONAL">Laboral / Profesional</option>
+          <option value="SOCIAL">Amistad / Social</option>
         </select>
       </div>
 
       <div class="field">
-        <label><strong>Arquetipo del alter</strong>¿Qué patrón describe mejor a la otra persona?</label>
-        <select id="archetype"></select>
+        <label>¿Cómo describirías a esta persona emocionalmente?
+          <span class="pregunta">Elige el patrón que más se acerca, aunque no sea exacto.</span>
+        </label>
+        <select id="archetype" onchange="markDone('s-alter')"></select>
       </div>
 
       <div class="field">
@@ -364,39 +220,39 @@
             <input type="checkbox" id="use-custom" onchange="toggleCustomProfile()">
             <span class="toggle-slider"></span>
           </label>
-          <span class="toggle-label">Definir perfil personalizado del alter (avanzado)</span>
+          <span class="toggle-label">Quiero definir el perfil de esta persona con más detalle</span>
         </div>
       </div>
 
       <div id="custom-profile-block">
         <div class="profile-grid">
           <div class="field">
-            <label><strong>w_s · Seguridad basal</strong></label>
-            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-ws-j')"><span class="val-badge" id="v-ws-j">0.50</span></div>
+            <label>¿Qué tan segura se siente esta persona en los vínculos?<span class="pregunta">0 = nada, 1 = totalmente</span></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-ws-j');markDone('s-alter')"><span class="val-badge" id="v-ws-j">0.50</span></div>
           </div>
           <div class="field">
-            <label><strong>w_a · Ansiedad basal</strong></label>
-            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-wa-j')"><span class="val-badge" id="v-wa-j">0.50</span></div>
+            <label>¿Qué tan ansiosa o tensa tiende a estar?<span class="pregunta">0 = tranquila, 1 = muy ansiosa</span></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-wa-j');markDone('s-alter')"><span class="val-badge" id="v-wa-j">0.50</span></div>
           </div>
           <div class="field">
-            <label><strong>w_e · Evitación basal</strong></label>
-            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-we-j')"><span class="val-badge" id="v-we-j">0.50</span></div>
+            <label>¿Qué tan cerrada o distante se pone cuando algo duele?<span class="pregunta">0 = abierta, 1 = muy cerrada</span></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-we-j');markDone('s-alter')"><span class="val-badge" id="v-we-j">0.50</span></div>
           </div>
           <div class="field">
-            <label><strong>w_d · Desorganización</strong></label>
-            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.2" oninput="syncVal(this,'v-wd-j')"><span class="val-badge" id="v-wd-j">0.20</span></div>
+            <label>¿Qué tan contradictoria es su manera de relacionarse?<span class="pregunta">0 = coherente, 1 = muy contradictoria</span></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.2" oninput="syncVal(this,'v-wd-j');markDone('s-alter')"><span class="val-badge" id="v-wd-j">0.20</span></div>
           </div>
           <div class="field">
-            <label><strong>G · Empatía</strong></label>
-            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-g-j')"><span class="val-badge" id="v-g-j">0.50</span></div>
+            <label>¿Qué tan empática o sensible es con los demás?<span class="pregunta">0 = poco, 1 = mucho</span></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-g-j');markDone('s-alter')"><span class="val-badge" id="v-g-j">0.50</span></div>
           </div>
           <div class="field">
-            <label><strong>A · Agencia / autonomía</strong></label>
-            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-a-j')"><span class="val-badge" id="v-a-j">0.50</span></div>
+            <label>¿Qué tan independiente o autónoma es?<span class="pregunta">0 = dependiente, 1 = muy autónoma</span></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.5" oninput="syncVal(this,'v-a-j');markDone('s-alter')"><span class="val-badge" id="v-a-j">0.50</span></div>
           </div>
-          <div class="field" style="grid-column: 1/-1">
-            <label><strong>P_default · Rigidez predictiva</strong><br>¿Qué tan firmemente confía en su interpretación emocional de las relaciones?</label>
-            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.7" oninput="syncVal(this,'v-p-j')"><span class="val-badge" id="v-p-j">0.70</span></div>
+          <div class="field" style="grid-column:1/-1">
+            <label>¿Qué tan difícil le resulta cambiar su manera de ver las cosas?<span class="pregunta">0 = flexible, 1 = muy rígida</span></label>
+            <div class="slider-wrap"><input type="range" min="0" max="1" step="0.01" value="0.7" oninput="syncVal(this,'v-p-j');markDone('s-alter')"><span class="val-badge" id="v-p-j">0.70</span></div>
           </div>
         </div>
       </div>
@@ -404,266 +260,288 @@
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════
-       SECCIÓN 2: APEGO
-  ════════════════════════════════════════ -->
+  <!-- SECCIÓN 2 -->
   <div class="section open" id="s-apego">
     <div class="section-header" onclick="toggleSection('s-apego')">
-      <span class="section-title">② Perfil de Apego</span>
-      <span><span class="section-tag">tú</span> <span class="chevron">▶</span></span>
+      <span class="section-title">② ¿Cómo eres tú en los vínculos?</span>
+      <span><span class="section-tag">tu forma de apegarte</span> <span class="chevron">▶</span></span>
     </div>
     <div class="section-body">
 
       <div class="field">
-        <label><strong>Seguridad emocional</strong>¿Qué tan fácil te resulta sentir estabilidad emocional incluso cuando la relación atraviesa tensión?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-sec')"><span class="val-badge" id="v-sec">5.0</span></div>
+        <label>¿Qué tan fácil te resulta sentirte estable emocionalmente, aunque la relación esté en tensión?
+          <span class="pregunta">No tienes que estar bien siempre, sino si puedes sostenerte sin derrumbarte.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-sec');markDone('s-apego')"><span class="val-badge" id="v-sec">5.0</span></div>
         <div class="scale-labels"><span>0 · Muy difícil</span><span>10 · Muy fácil</span></div>
       </div>
 
       <div class="field">
-        <label><strong>Ansiedad de apego</strong>¿Qué tan intensamente temes abandono, distancia o pérdida emocional?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-anx')"><span class="val-badge" id="v-anx">5.0</span></div>
-        <div class="scale-labels"><span>0 · Casi nada</span><span>10 · Muy intensamente</span></div>
+        <label>¿Qué tan seguido te angustia perder a esta persona, que se aleje, o que deje de estar disponible para ti?
+          <span class="pregunta">No lo que "debería" sentir, sino lo que realmente sientes.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-anx');markDone('s-apego')"><span class="val-badge" id="v-anx">5.0</span></div>
+        <div class="scale-labels"><span>0 · Casi nunca</span><span>10 · Muy seguido</span></div>
       </div>
 
       <div class="field">
-        <label><strong>Evitación</strong>¿Qué tan frecuentemente necesitas distancia emocional o te cierras cuando algo duele?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="4" oninput="syncVal(this,'v-avi')"><span class="val-badge" id="v-avi">4.0</span></div>
-        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Constantemente</span></div>
+        <label>¿Con qué frecuencia te cerras o te alejas cuando algo te duele, en vez de acercarte?
+          <span class="pregunta">Cerrarse no es malo, solo es un patrón a reconocer.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="4" oninput="syncVal(this,'v-avi');markDone('s-apego')"><span class="val-badge" id="v-avi">4.0</span></div>
+        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Siempre</span></div>
       </div>
 
       <div class="field">
-        <label><strong>Desorganización</strong>¿Sientes impulsos contradictorios simultáneos (buscar cercanía y rechazarla al mismo tiempo)?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="3" oninput="syncVal(this,'v-dis')"><span class="val-badge" id="v-dis">3.0</span></div>
-        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Muy frecuente</span></div>
+        <label>¿Alguna vez sientes que al mismo tiempo quieres acercarte y alejarte de esta persona?
+          <span class="pregunta">Como si hubiera dos cosas tirando en sentidos opuestos.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="3" oninput="syncVal(this,'v-dis');markDone('s-apego')"><span class="val-badge" id="v-dis">3.0</span></div>
+        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Muy seguido</span></div>
       </div>
 
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════
-       SECCIÓN 3: REGULACIÓN
-  ════════════════════════════════════════ -->
+  <!-- SECCIÓN 3 -->
   <div class="section" id="s-reg">
     <div class="section-header" onclick="toggleSection('s-reg')">
-      <span class="section-title">③ Regulación y Funcionamiento</span>
-      <span><span class="section-tag">capacidades</span> <span class="chevron">▶</span></span>
+      <span class="section-title">③ ¿Cómo te manejas en el día a día?</span>
+      <span><span class="section-tag">tus recursos</span> <span class="chevron">▶</span></span>
     </div>
     <div class="section-body">
 
       <div class="field">
-        <label><strong>Masking / Regulación ejecutiva</strong>¿Qué tan capaz eres de mantener una conducta funcional aunque estés emocionalmente mal?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-mask')"><span class="val-badge" id="v-mask">6.0</span></div>
+        <label>¿Qué tan capaz eres de seguir funcionando y comportarte con calma aunque por dentro estés mal?
+          <span class="pregunta">Como cuando sonríes en una reunión aunque estés agotado/a por dentro.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-mask');markDone('s-reg')"><span class="val-badge" id="v-mask">6.0</span></div>
         <div class="scale-labels"><span>0 · Nada</span><span>10 · Totalmente</span></div>
       </div>
 
       <div class="field">
-        <label><strong>Empatía / Responsividad</strong>¿Qué tan responsable te sientes por regular o contener emocionalmente al otro?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="7" oninput="syncVal(this,'v-emp')"><span class="val-badge" id="v-emp">7.0</span></div>
-        <div class="scale-labels"><span>0 · Poco</span><span>10 · Mucho</span></div>
+        <label>¿Qué tan seguido sientes que es tu responsabilidad que la otra persona esté bien emocionalmente?
+          <span class="pregunta">Si se pone mal, ¿sientes que tienes que hacer algo para arreglarlo?</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="7" oninput="syncVal(this,'v-emp');markDone('s-reg')"><span class="val-badge" id="v-emp">7.0</span></div>
+        <div class="scale-labels"><span>0 · Casi nunca</span><span>10 · Siempre</span></div>
       </div>
 
       <div class="field">
-        <label><strong>Agencia relacional</strong>¿Qué tanta autonomía real tienes dentro de la relación o sistema?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-age')"><span class="val-badge" id="v-age">5.0</span></div>
+        <label>¿Qué tanta libertad real sientes que tienes dentro de esta relación?
+          <span class="pregunta">Poder decir que no, tomar decisiones, poner límites sin miedo.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-age');markDone('s-reg')"><span class="val-badge" id="v-age">5.0</span></div>
         <div class="scale-labels"><span>0 · Ninguna</span><span>10 · Total</span></div>
       </div>
 
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════
-       SECCIÓN 4: BURNOUT
-  ════════════════════════════════════════ -->
+  <!-- SECCIÓN 4 -->
   <div class="section" id="s-burn">
     <div class="section-header" onclick="toggleSection('s-burn')">
-      <span class="section-title">④ Fatiga y Carga Alostática</span>
-      <span><span class="section-tag">desgaste</span> <span class="chevron">▶</span></span>
+      <span class="section-title">④ ¿Qué tanto te desgasta?</span>
+      <span><span class="section-tag">tu energía en el vínculo</span> <span class="chevron">▶</span></span>
     </div>
     <div class="section-body">
 
       <div class="field">
-        <label><strong>Velocidad de burnout</strong>¿Qué tan rápido sientes que te desgastas emocionalmente en esta relación?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-bspd')"><span class="val-badge" id="v-bspd">5.0</span></div>
+        <label>¿Qué tan rápido te sientes emocionalmente agotado/a después de estar con esta persona o pensar en ella?
+          <span class="pregunta">No si es buena o mala persona, sino si te deja sin energía.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-bspd');markDone('s-burn')"><span class="val-badge" id="v-bspd">5.0</span></div>
+        <div class="scale-labels"><span>0 · Poco</span><span>10 · Muy rápido</span></div>
+      </div>
+
+      <div class="field">
+        <label>¿Qué tan rápido vuelves a sentirte bien después de un momento difícil con esta persona?
+          <span class="pregunta">¿Necesitas horas, días, o te recuperas rápido?</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rspd');markDone('s-burn')"><span class="val-badge" id="v-rspd">5.0</span></div>
         <div class="scale-labels"><span>0 · Lento</span><span>10 · Rápido</span></div>
       </div>
 
       <div class="field">
-        <label><strong>Velocidad de recuperación</strong>¿Qué tan rápido te recuperas emocionalmente después de tensión?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rspd')"><span class="val-badge" id="v-rspd">5.0</span></div>
-        <div class="scale-labels"><span>0 · Lento</span><span>10 · Rápido</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Costo de hiperactivación</strong>¿Qué tanto agota estar en alerta o búsqueda emocional activa?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-hca')"><span class="val-badge" id="v-hca">5.0</span></div>
-        <div class="scale-labels"><span>0 · Poco</span><span>10 · Mucho</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Costo de evitación</strong>¿Qué tanto agota mantener distancia o bloquear las emociones?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="4" oninput="syncVal(this,'v-eca')"><span class="val-badge" id="v-eca">4.0</span></div>
-        <div class="scale-labels"><span>0 · Poco</span><span>10 · Mucho</span></div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════════════
-       SECCIÓN 5: PERCEPCIÓN
-  ════════════════════════════════════════ -->
-  <div class="section" id="s-perc">
-    <div class="section-header" onclick="toggleSection('s-perc')">
-      <span class="section-title">⑤ Filtros Perceptivos</span>
-      <span><span class="section-tag">sesgo</span> <span class="chevron">▶</span></span>
-    </div>
-    <div class="section-body">
-
-      <div class="field">
-        <label><strong>Sesgo de amenaza</strong>¿Con qué facilidad interpretas señales ambiguas como rechazo, crítica o abandono?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-thr')"><span class="val-badge" id="v-thr">6.0</span></div>
-        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Siempre</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Visibilidad de reparación</strong>¿Qué tan fácil te resulta reconocer y recibir gestos de acercamiento o reparación?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rep')"><span class="val-badge" id="v-rep">5.0</span></div>
-        <div class="scale-labels"><span>0 · Muy difícil</span><span>10 · Fácilmente</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Hipervigilancia relacional</strong>¿Qué tan frecuentemente monitorizas el estado emocional o disponibilidad del otro?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-hyp')"><span class="val-badge" id="v-hyp">6.0</span></div>
-        <div class="scale-labels"><span>0 · Poco</span><span>10 · Constantemente</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Negatividad en memoria</strong>¿Las experiencias negativas tienden a pesar más que las positivas en tu recuerdo del vínculo?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-neg')"><span class="val-badge" id="v-neg">5.0</span></div>
-        <div class="scale-labels"><span>0 · Equilibrado</span><span>10 · Muy negativo</span></div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ════════════════════════════════════════
-       SECCIÓN 6: ENTORNO
-  ════════════════════════════════════════ -->
-  <div class="section" id="s-env">
-    <div class="section-header" onclick="toggleSection('s-env')">
-      <span class="section-title">⑥ Entorno y Co-regulación</span>
-      <span><span class="section-tag">contexto</span> <span class="chevron">▶</span></span>
-    </div>
-    <div class="section-body">
-
-      <div class="field">
-        <label><strong>Inestabilidad del entorno</strong>¿Qué tan impredecible o caótico es el contexto en el que ocurre esta relación?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-env')"><span class="val-badge" id="v-env">5.0</span></div>
-        <div class="scale-labels"><span>0 · Estable</span><span>10 · Caótico</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Ruido comunicacional</strong>¿Con qué frecuencia hay malentendidos, mensajes ambiguos o conflictos no resueltos?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-cnoise')"><span class="val-badge" id="v-cnoise">5.0</span></div>
-        <div class="scale-labels"><span>0 · Poco</span><span>10 · Frecuente</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Delay comunicacional</strong>¿Qué tan frecuentes son los silencios, retrasos o desincronizaciones?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-delay')"><span class="val-badge" id="v-delay">5.0</span></div>
-        <div class="scale-labels"><span>0 · Fluido</span><span>10 · Muy lento</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Latencia de reconexión</strong>¿Cuánto tarda normalmente una reparación o reconexión emocional?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-lat')"><span class="val-badge" id="v-lat">5.0</span></div>
-        <div class="scale-labels"><span>0 · Rápida</span><span>10 · Muy lenta</span></div>
-      </div>
-
-      <div class="field">
-        <label><strong>Co-regulación efectiva</strong>¿Sentir apoyo o cercanía del otro reduce realmente tu estrés?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-coreg')"><span class="val-badge" id="v-coreg">6.0</span></div>
+        <label>¿Qué tanto te agota estar pendiente de si esta persona está bien, enojada, disponible o distante?
+          <span class="pregunta">La energía que gastas en "leer" cómo está el otro.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-hca');markDone('s-burn')"><span class="val-badge" id="v-hca">5.0</span></div>
         <div class="scale-labels"><span>0 · Nada</span><span>10 · Mucho</span></div>
       </div>
 
       <div class="field">
-        <label><strong>Velocidad de reparación propia</strong>¿Qué tan rápido intentas reparar después de tensión o conflicto?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-rpspd')"><span class="val-badge" id="v-rpspd">6.0</span></div>
-        <div class="scale-labels"><span>0 · Lento</span><span>10 · Inmediato</span></div>
+        <label>¿Qué tanto te agota tener que cerrarte o hacer como que nada pasó para seguir funcionando?
+          <span class="pregunta">El costo de guardar las cosas para uno/a.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="4" oninput="syncVal(this,'v-eca');markDone('s-burn')"><span class="val-badge" id="v-eca">4.0</span></div>
+        <div class="scale-labels"><span>0 · Nada</span><span>10 · Mucho</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECCIÓN 5 -->
+  <div class="section" id="s-perc">
+    <div class="section-header" onclick="toggleSection('s-perc')">
+      <span class="section-title">⑤ ¿Cómo interpretas lo que pasa?</span>
+      <span><span class="section-tag">tu lectura del vínculo</span> <span class="chevron">▶</span></span>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label>Cuando esta persona hace algo ambiguo —como no contestar o estar seria— ¿qué tan fácil es que lo interpretes como rechazo o señal de algo malo?
+          <span class="pregunta">Aunque luego resulte que era otra cosa.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-thr');markDone('s-perc')"><span class="val-badge" id="v-thr">6.0</span></div>
+        <div class="scale-labels"><span>0 · Rara vez</span><span>10 · Casi siempre</span></div>
       </div>
 
       <div class="field">
-        <label><strong>Probabilidad de reparación bajo fatiga</strong>¿Qué tan probable es que hagas esfuerzos de acercamiento incluso estando agotado/a?</label>
-        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rpprob')"><span class="val-badge" id="v-rpprob">5.0</span></div>
+        <label>¿Qué tan fácil te resulta notar y recibir cuando esta persona hace un gesto de acercamiento o intenta reparar algo?
+          <span class="pregunta">A veces los gestos están pero no los vemos.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rep');markDone('s-perc')"><span class="val-badge" id="v-rep">5.0</span></div>
+        <div class="scale-labels"><span>0 · Muy difícil</span><span>10 · Muy fácil</span></div>
+      </div>
+
+      <div class="field">
+        <label>¿Con qué frecuencia estás pensando o pendiente de cómo está esta persona, qué está sintiendo, o si algo está mal entre ustedes?
+          <span class="pregunta">No es malo estar atento/a, pero a veces consume mucho.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-hyp');markDone('s-perc')"><span class="val-badge" id="v-hyp">6.0</span></div>
+        <div class="scale-labels"><span>0 · Poco</span><span>10 · Constantemente</span></div>
+      </div>
+
+      <div class="field">
+        <label>Cuando recuerdas esta relación, ¿los momentos difíciles o dolorosos pesan más que los buenos?
+          <span class="pregunta">No si hay más momentos malos, sino cuáles se quedan más grabados.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-neg');markDone('s-perc')"><span class="val-badge" id="v-neg">5.0</span></div>
+        <div class="scale-labels"><span>0 · Los buenos pesan igual</span><span>10 · Los malos pesan mucho más</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECCIÓN 6 -->
+  <div class="section" id="s-env">
+    <div class="section-header" onclick="toggleSection('s-env')">
+      <span class="section-title">⑥ ¿Cómo es el entorno donde ocurre esto?</span>
+      <span><span class="section-tag">el contexto</span> <span class="chevron">▶</span></span>
+    </div>
+    <div class="section-body">
+
+      <div class="field">
+        <label>¿Qué tan inestable o impredecible es el contexto donde se da esta relación?
+          <span class="pregunta">Estrés externo, cambios frecuentes, situaciones difíciles que afectan el vínculo.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-env');markDone('s-env')"><span class="val-badge" id="v-env">5.0</span></div>
+        <div class="scale-labels"><span>0 · Muy estable</span><span>10 · Muy caótico</span></div>
+      </div>
+
+      <div class="field">
+        <label>¿Con qué frecuencia hay malentendidos, cosas que no se dicen o mensajes que se interpretan distinto?
+          <span class="pregunta">No necesariamente conflictos, sino pequeñas fricciones comunicacionales.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-cnoise');markDone('s-env')"><span class="val-badge" id="v-cnoise">5.0</span></div>
+        <div class="scale-labels"><span>0 · Rara vez</span><span>10 · Muy seguido</span></div>
+      </div>
+
+      <div class="field">
+        <label>¿Con qué frecuencia hay silencios largos, demoras o desconexiones entre ustedes?
+          <span class="pregunta">Puede ser literalmente tiempo sin hablar, o sensación de estar desincronizados.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-delay');markDone('s-env')"><span class="val-badge" id="v-delay">5.0</span></div>
+        <div class="scale-labels"><span>0 · Nunca</span><span>10 · Muy seguido</span></div>
+      </div>
+
+      <div class="field">
+        <label>Cuando se distancian o algo se pone tenso, ¿cuánto tarda la reconexión?
+          <span class="pregunta">No si siempre se reconectan, sino qué tanto tiempo pasa.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-lat');markDone('s-env')"><span class="val-badge" id="v-lat">5.0</span></div>
+        <div class="scale-labels"><span>0 · Rápido</span><span>10 · Mucho tiempo</span></div>
+      </div>
+
+      <div class="field">
+        <label>Cuando esta persona está cerca o disponible emocionalmente, ¿eso realmente te calma?
+          <span class="pregunta">¿Su presencia o apoyo de verdad te hace sentir mejor?</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-coreg');markDone('s-env')"><span class="val-badge" id="v-coreg">6.0</span></div>
+        <div class="scale-labels"><span>0 · Nada</span><span>10 · Mucho</span></div>
+      </div>
+
+      <div class="field">
+        <label>Cuando hay un conflicto o tensión, ¿qué tan rápido intentas tú hacer algo para arreglarlo?
+          <span class="pregunta">No si lo resuelven, sino si tú das el primer paso.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="6" oninput="syncVal(this,'v-rpspd');markDone('s-env')"><span class="val-badge" id="v-rpspd">6.0</span></div>
+        <div class="scale-labels"><span>0 · Espero mucho</span><span>10 · De inmediato</span></div>
+      </div>
+
+      <div class="field">
+        <label>¿Qué tan probable es que intentes acercarte o reparar incluso cuando estás muy cansado/a?
+          <span class="pregunta">Cuando ya no tienes energía pero igual lo intentas.</span>
+        </label>
+        <div class="slider-wrap"><input type="range" min="0" max="10" step="0.5" value="5" oninput="syncVal(this,'v-rpprob');markDone('s-env')"><span class="val-badge" id="v-rpprob">5.0</span></div>
         <div class="scale-labels"><span>0 · Improbable</span><span>10 · Muy probable</span></div>
       </div>
 
     </div>
   </div>
 
-  <!-- ── Submit ── -->
-  <button id="btn-run" onclick="runSimulation()">Ejecutar Simulación →</button>
+  <button id="btn-run" onclick="runSimulation()">Simular este vínculo →</button>
 
-  <!-- ── Progress ── -->
   <div id="progress">
     <div class="progress-bar"><div class="progress-fill"></div></div>
-    <div class="progress-label" id="progress-label">Enviando parámetros al servidor...</div>
+    <div class="progress-label" id="progress-label">Enviando al servidor...</div>
   </div>
 
-  <!-- ── Error ── -->
   <div id="error-box"></div>
 
-  <!-- ════════════════════════════════════════
-       RESULTADOS
-  ════════════════════════════════════════ -->
+  <!-- RESULTADOS -->
   <div id="results">
-    <div class="results-header">── Resultados de la Simulación ──────────────────</div>
-
+    <div class="results-header">── Resultados ────────────────────────────────────</div>
     <img id="chart-img" src="" alt="Gráfica RA-EEM">
-
     <div class="attractor-box">
-      <div class="label">Atractor Relacional</div>
+      <div class="label">Patrón relacional dominante</div>
       <div class="value" id="r-attractor">—</div>
     </div>
-
     <div class="pheno-grid" id="pheno-grid"></div>
-
     <div style="margin-top:16px">
-      <div class="results-header">── Patrones Emergentes ───────────────────────────</div>
+      <div class="results-header">── Patrones que emergen ──────────────────────────</div>
       <div class="patterns-list" id="patterns-list"></div>
     </div>
-
     <div style="margin-top:16px">
-      <div class="results-header">── Estadísticas de Simulación ───────────────────</div>
+      <div class="results-header">── Números de la simulación ──────────────────────</div>
       <table class="stats-table" id="stats-table"></table>
     </div>
-
     <div class="dl-row">
-      <a id="dl-png" class="btn-dl png" href="#" download="raeem_simulacion.png">⬇ Descargar gráfica (.png)</a>
-      <a id="dl-json" class="btn-dl json" href="#" download="raeem_resultado.json">⬇ Descargar resultado (.json)</a>
+      <a id="dl-png" class="btn-dl png" href="#" download="raeem_simulacion.png">⬇ Descargar gráfica</a>
+      <a id="dl-json" class="btn-dl json" href="#" download="raeem_resultado.json">⬇ Descargar datos (.json)</a>
     </div>
-
     <button id="btn-prompt" onclick="openPromptModal()">
-      <span>✦</span> Crear prompt para LLM sobre estos resultados
+      <span>✦</span> Generar resumen para llevar a sesión
     </button>
   </div>
 
 </div>
 
-<!-- Modal de Prompt -->
+<!-- Modal -->
 <div id="prompt-modal">
   <div class="modal-box">
     <div class="modal-header">
-      <h3>✦ Prompt para LLM — RA-EEM</h3>
+      <h3>✦ Resumen para tu psicólogo/a o un LLM</h3>
       <button class="modal-close" onclick="closePromptModal()">×</button>
     </div>
     <div class="modal-body">
       <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5">
-        Prompt listo para pegar en Claude, ChatGPT u otro LLM. Incluye la firma fenotípica completa, los parámetros y el contexto del modelo.
+        Prompt listo para pegar en Claude, ChatGPT u otro modelo. Incluye los resultados completos y le pide una interpretación psicológica detallada.
       </p>
       <textarea id="prompt-textarea" readonly spellcheck="false"></textarea>
       <div class="modal-footer">
-        <button class="btn-copy" id="copy-btn" onclick="copyPrompt()">Copiar prompt</button>
+        <button class="btn-copy" id="copy-btn" onclick="copyPrompt()">Copiar</button>
         <button class="btn-modal-dl" onclick="downloadPrompt()">⬇ .txt</button>
         <button class="btn-modal-dl" onclick="closePromptModal()">Cerrar</button>
       </div>
@@ -672,34 +550,119 @@
 </div>
 
 <script>
-// ── Archetypes data ────────────────────────────────────────
+// ── Archetypes ─────────────────────────────────────────────
 const ARCHETYPES = {
-  ROMANTIC:     ['SECURE_PARTNER','ANXIOUS_PURSUER','AVOIDANT_WITHDRAWER','DISORGANIZED_PARTNER','HOT_COLD_DYNAMIC','EMOTIONALLY_UNAVAILABLE'],
-  PROFESSIONAL: ['COLLABORATIVE_PEER','BOSS_MICROMANAGER','EMOTIONALLY_DETACHED_MANAGER','HIGH_PRESSURE_SUPERVISOR','UNPREDICTABLE_AUTHORITY','PASSIVE_AGGRESSIVE_COWORKER'],
-  SOCIAL:       ['SUPPORTIVE_FRIEND','INCONSISTENT_FRIEND','SOCIAL_AVOIDANT','DOMINANT_PERSONALITY','VALIDATING_COMPANION','CHAOTIC_SOCIAL_NODE'],
-  FAMILIAL:     ['SECURE_ATTACHMENT_FIGURE','CRITICAL_PARENT','EMOTIONALLY_ABSENT','OVERPROTECTIVE_FIGURE','UNPREDICTABLE_CAREGIVER','FUSED_BOUNDARY_DYNAMIC'],
+  ROMANTIC:     [['SECURE_PARTNER','Segura y presente'],['ANXIOUS_PURSUER','Ansiosa, busca mucho contacto'],['AVOIDANT_WITHDRAWER','Se cierra y se aleja'],['DISORGANIZED_PARTNER','Impredecible, a veces cerca a veces lejos'],['HOT_COLD_DYNAMIC','Caliente y fría según el momento'],['EMOTIONALLY_UNAVAILABLE','Emocionalmente no disponible']],
+  PROFESSIONAL: [['COLLABORATIVE_PEER','Colaboradora y estable'],['BOSS_MICROMANAGER','Controladora, muy encima'],['EMOTIONALLY_DETACHED_MANAGER','Distante, solo habla de resultados'],['HIGH_PRESSURE_SUPERVISOR','Exigente y generadora de presión'],['UNPREDICTABLE_AUTHORITY','Impredecible, no sabes cómo va a reaccionar'],['PASSIVE_AGGRESSIVE_COWORKER','Indirecta o agresiva de forma velada']],
+  SOCIAL:       [['SUPPORTIVE_FRIEND','Apoyo real, está cuando la necesitas'],['INCONSISTENT_FRIEND','A veces está, a veces desaparece'],['SOCIAL_AVOIDANT','Se hace presente poco o con distancia'],['DOMINANT_PERSONALITY','Necesita llevar la batuta'],['VALIDATING_COMPANION','Muy validadora, siempre de acuerdo'],['CHAOTIC_SOCIAL_NODE','Genera movimiento y caos a su alrededor']],
+  FAMILIAL:     [['SECURE_ATTACHMENT_FIGURE','Referente seguro, estable'],['CRITICAL_PARENT','Crítica o exigente'],['EMOTIONALLY_ABSENT','Físicamente presente pero emocionalmente ausente'],['OVERPROTECTIVE_FIGURE','Sobreprotectora, no da espacio'],['UNPREDICTABLE_CAREGIVER','Inconsistente, no sabes qué esperar'],['FUSED_BOUNDARY_DYNAMIC','Muy fusionada, sin límites claros']],
 };
 
 function updateArchetypes() {
   const ctx = document.getElementById('context-type').value;
   const sel = document.getElementById('archetype');
   sel.innerHTML = '';
-  ARCHETYPES[ctx].forEach(a => {
+  ARCHETYPES[ctx].forEach(([val, label]) => {
     const o = document.createElement('option');
-    o.value = a; o.textContent = a.replace(/_/g,' ');
+    o.value = val; o.textContent = label;
     sel.appendChild(o);
   });
 }
 updateArchetypes();
 
+// ── Progress pills ─────────────────────────────────────────
+const SECTION_IDS = ['s-alter','s-apego','s-reg','s-burn','s-perc','s-env'];
+const doneSections = new Set();
+
+function markDone(id) {
+  doneSections.add(id);
+  const pill = document.getElementById('pill-' + id);
+  if (pill) { pill.classList.remove('active'); pill.classList.add('done'); }
+  saveToStorage();
+}
+
+function jumpTo(id) {
+  const el = document.getElementById(id);
+  if (!el.classList.contains('open')) el.classList.add('open');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  SECTION_IDS.forEach(s => {
+    const p = document.getElementById('pill-' + s);
+    if (p && !p.classList.contains('done')) p.classList.remove('active');
+  });
+  const pill = document.getElementById('pill-' + id);
+  if (pill && !pill.classList.contains('done')) { pill.classList.add('active'); }
+}
+
+// ── localStorage ───────────────────────────────────────────
+const STORAGE_KEY = 'raeem_form_v1';
+const SLIDER_IDS = ['v-sec','v-anx','v-avi','v-dis','v-mask','v-emp','v-age','v-bspd','v-rspd','v-hca','v-eca','v-thr','v-rep','v-hyp','v-neg','v-env','v-cnoise','v-delay','v-lat','v-coreg','v-rpspd','v-rpprob','v-ws-j','v-wa-j','v-we-j','v-wd-j','v-g-j','v-a-j','v-p-j'];
+
+function saveToStorage() {
+  try {
+    const data = {};
+    SLIDER_IDS.forEach(id => {
+      const badge = document.getElementById(id);
+      if (badge) data[id] = badge.textContent;
+    });
+    data['context-type'] = document.getElementById('context-type').value;
+    data['archetype'] = document.getElementById('archetype').value;
+    data['use-custom'] = document.getElementById('use-custom').checked;
+    data['server-url'] = document.getElementById('server-url').value;
+    data['done'] = [...doneSections];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+
+    if (data['server-url']) document.getElementById('server-url').value = data['server-url'];
+    if (data['context-type']) { document.getElementById('context-type').value = data['context-type']; updateArchetypes(); }
+    if (data['archetype']) { document.getElementById('archetype').value = data['archetype']; }
+    if (data['use-custom']) { document.getElementById('use-custom').checked = true; toggleCustomProfile(); }
+
+    SLIDER_IDS.forEach(id => {
+      if (data[id] === undefined) return;
+      const badge = document.getElementById(id);
+      const val = parseFloat(data[id]);
+      if (!badge || isNaN(val)) return;
+      badge.textContent = data[id];
+      // Encontrar el input range correspondiente
+      const wrap = badge.parentElement;
+      if (wrap) {
+        const input = wrap.querySelector('input[type=range]');
+        if (input) input.value = val;
+      }
+    });
+
+    if (data['done']) {
+      data['done'].forEach(id => markDone(id));
+    }
+  } catch(e) {}
+}
+
+// ── Config.json (URL desde repo) ───────────────────────────
+async function loadConfig() {
+  try {
+    const r = await fetch('config.json');
+    if (r.ok) {
+      const cfg = await r.json();
+      if (cfg.server_url && !document.getElementById('server-url').value) {
+        document.getElementById('server-url').value = cfg.server_url;
+      }
+    }
+  } catch(e) {}
+}
+
 // ── Helpers ────────────────────────────────────────────────
 function syncVal(input, id) {
-  document.getElementById(id).textContent = parseFloat(input.value).toFixed(2);
+  document.getElementById(id).textContent = parseFloat(input.value).toFixed(input.step < 0.1 ? 2 : 1);
 }
 function getVal(id) { return parseFloat(document.getElementById(id).textContent); }
-function toggleSection(id) {
-  document.getElementById(id).classList.toggle('open');
-}
+function toggleSection(id) { document.getElementById(id).classList.toggle('open'); }
 function toggleCustomProfile() {
   const on = document.getElementById('use-custom').checked;
   document.getElementById('custom-profile-block').classList.toggle('visible', on);
@@ -712,31 +675,26 @@ async function testConnection() {
   dot.className = 'dot';
   try {
     const r = await fetch(url + '/health', { method: 'GET', signal: AbortSignal.timeout(8000) });
-    if (r.ok) { dot.className = 'dot ok'; }
-    else { dot.className = 'dot err'; }
+    dot.className = r.ok ? 'dot ok' : 'dot err';
   } catch(e) { dot.className = 'dot err'; }
 }
 
 // ── Build params ───────────────────────────────────────────
 function buildParams() {
   const g = getVal;
-
   const sec = g('v-sec'), anx = g('v-anx'), avi = g('v-avi'), dis = g('v-dis');
   const tot = sec + anx + avi + dis || 1;
   const w_s = sec/tot, w_a = anx/tot, w_e = avi/tot, w_d = dis/tot;
-
   const mask = g('v-mask')/10, emp = g('v-emp')/10, age = g('v-age')/10;
   const lambda_r = 0.2 + mask * 0.8;
   const lambda_g = 0.1 + emp * 0.5;
   const A = (age * 2.0) - 1.0;
-
   const bspd = g('v-bspd')/10, rspd = g('v-rspd')/10;
   const hca = g('v-hca')/10, eca = g('v-eca')/10;
   const alpha = 0.005 + bspd * 0.04;
   const beta  = 0.01  + rspd * 0.08;
   const eta_symp = 0.0005 + hca * 0.005;
   const eta_evit = 0.0005 + eca * 0.005;
-
   const thr = g('v-thr')/10, rep = g('v-rep')/10;
   const hyp = g('v-hyp')/10, neg = g('v-neg')/10;
   const chi   = 1.0 + thr * 2.5;
@@ -744,36 +702,28 @@ function buildParams() {
   const P_default = 0.4 + hyp * 0.55;
   const gamma_minus = 0.015 + neg * 0.05;
   const gamma_plus  = 0.01  + rep * 0.03;
-
   const env = g('v-env'), cnoise = g('v-cnoise'), delay = g('v-delay'), lat = g('v-lat');
   const env_noise = (env + cnoise + delay) / 30.0;
   const noise_sigma = +(0.01 + env_noise * 0.14).toFixed(3);
   const tau = Math.round(5 + lat * 2.5);
-
   const coreg = g('v-coreg')/10, rpspd = g('v-rpspd')/10, rpprob = g('v-rpprob')/10;
   const zeta = 0.005 + coreg * 0.05;
   const repair_threshold   = 0.8 - rpspd * 0.6;
   const repair_probability = 0.02 + rpprob * 0.25;
-
   let stress_profile = 'LOW_NOISE_STABLE';
   if (noise_sigma >= 0.08) stress_profile = 'HIGH_ENTROPY_EDGE';
   else if (noise_sigma >= 0.03) stress_profile = 'REALISTIC_DYNAMIC';
   if (noise_sigma >= 0.15) stress_profile = 'CHAOTIC_COLLAPSE_RISK';
-
-  // Alter
   const ctx  = document.getElementById('context-type').value;
   const arch = document.getElementById('archetype').value;
   const useCustom = document.getElementById('use-custom').checked;
   let custom_profile = null;
-
   if (useCustom) {
-    const sliders = document.querySelectorAll('#custom-profile-block input[type=range]');
     const ids = ['v-ws-j','v-wa-j','v-we-j','v-wd-j','v-g-j','v-a-j','v-p-j'];
     const keys = ['w_s','w_a','w_e','w_d','G','A','P_default'];
     custom_profile = {};
     keys.forEach((k,i) => custom_profile[k] = parseFloat(document.getElementById(ids[i]).textContent));
   }
-
   return {
     lambda_s: +(0.8 + w_s).toFixed(3), lambda_r: +lambda_r.toFixed(3),
     lambda_g: +lambda_g.toFixed(3), lambda_I: 0.05, sigma: 1.0,
@@ -793,41 +743,33 @@ function buildParams() {
   };
 }
 
-// ── Run simulation ─────────────────────────────────────────
+// ── Run ────────────────────────────────────────────────────
 async function runSimulation() {
   const serverUrl = "https://browsing-occultist-settle.ngrok-free.dev"
-  if (!serverUrl) { showError('⚠️  Ingresa la URL del servidor Colab antes de ejecutar.'); return; }
-
+  if (!serverUrl) { showError('⚠️  Ingresa la URL del servidor antes de simular.'); return; }
   const params = buildParams();
-
   document.getElementById('btn-run').disabled = true;
   document.getElementById('error-box').style.display = 'none';
   document.getElementById('results').style.display = 'none';
-
   const prog = document.getElementById('progress');
   prog.style.display = 'block';
-  setProgressLabel('Enviando parámetros al servidor...');
-
+  setProgressLabel('Enviando al servidor...');
   try {
-    setProgressLabel('Simulando 500 ticks dinámicos...');
+    setProgressLabel('Corriendo la simulación (500 pasos)...');
     const resp = await fetch(serverUrl + '/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
       signal: AbortSignal.timeout(90000)
     });
-
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({ error: resp.statusText }));
       throw new Error(err.error || 'Error del servidor');
     }
-
-    setProgressLabel('Procesando firma fenotípica...');
+    setProgressLabel('Calculando la firma del vínculo...');
     const data = await resp.json();
-
     prog.style.display = 'none';
     renderResults(data, params);
-
   } catch(e) {
     prog.style.display = 'none';
     showError('❌ ' + e.message + '\n\nVerifica que el servidor Colab esté corriendo y la URL sea correcta.');
@@ -837,24 +779,89 @@ async function runSimulation() {
 }
 
 function setProgressLabel(t) { document.getElementById('progress-label').textContent = t; }
-function showError(msg) {
-  const b = document.getElementById('error-box');
-  b.style.display = 'block';
-  b.textContent = msg;
-}
+function showError(msg) { const b = document.getElementById('error-box'); b.style.display = 'block'; b.textContent = msg; }
 
-// ── Render results ─────────────────────────────────────────
+// ── Render ─────────────────────────────────────────────────
+const ATTRACTOR_ES = {
+  'mutual_prosocial_resonance': 'Resonancia prosocial mutua',
+  'mutual_hostile_collapse': 'Colapso hostil mutuo',
+  'polarized_pursuit_evasive': 'Persecución y evasión polarizada',
+  'inverse_polarized_rebellion': 'Rebelión polarizada inversa',
+  'stochastic_drift_neutral': 'Deriva estocástica neutral',
+};
+
+const PHENO_CARD_ES = {
+  'Regulación': {
+    stress_tolerance: 'Tolerancia al estrés',
+    burnout_resistance: 'Resistencia al agotamiento',
+    emotional_variability: 'Variabilidad emocional',
+    shock_absorption: 'Absorción de impactos',
+  },
+  'Perfil Predictivo': {
+    threat_bias: 'Sesgo hacia amenazas',
+    prediction_rigidity: 'Rigidez de expectativas',
+    delay_processing: 'Velocidad de procesamiento',
+  },
+  'Estabilidad Relacional': {
+    attractor_type: 'Patrón dominante',
+    phase_structure: 'Estructura del vínculo',
+    predictive_attunement: 'Sintonía predictiva',
+    repair_capacity: 'Capacidad de reparación',
+  },
+  'Energía': {
+    allostatic_load: 'Carga acumulada',
+    noise_tolerance: 'Tolerancia al ruido',
+  },
+};
+
+const VAL_ES = {
+  'high': 'alta', 'very_high': 'muy alta', 'moderate': 'moderada', 'low': 'baja', 'fragile': 'frágil',
+  'stable': 'estable', 'dynamic': 'dinámica', 'chaotic': 'caótica',
+  'gradual_adaptation': 'adaptación gradual', 'acute_impact': 'impacto agudo', 'explosive_shattering': 'ruptura explosiva',
+  'positive_bias': 'sesgo positivo', 'balanced': 'equilibrado', 'threat_sensitive': 'sensible a amenazas', 'hypervigilant': 'hipervigilante',
+  'flexible': 'flexible', 'rigid': 'rígido',
+  'fast': 'rápido', 'deep_processing': 'procesamiento profundo',
+  'fixed_point': 'punto fijo', 'bounded_orbit': 'órbita acotada', 'complex_dynamic': 'dinámica compleja',
+  'counter_regulated': 'contraregulado', 'uncoupled': 'desacoplado', 'synchronized': 'sincronizado', 'hyper_resonant': 'hiper-resonante',
+  'minimal': 'mínima', 'intermittent': 'intermitente', 'active': 'activa', 'hyperactive': 'hiperactiva',
+  'critical': 'crítica',
+  'low_noise': 'ruido bajo', 'realistic_dynamic': 'dinámica realista', 'high_noise': 'ruido alto', 'chaotic_environment': 'entorno caótico',
+  'mutual_prosocial_resonance': 'Resonancia prosocial mutua',
+  'mutual_hostile_collapse': 'Colapso hostil mutuo',
+  'polarized_pursuit_evasive': 'Persecución/evasión',
+  'inverse_polarized_rebellion': 'Rebelión polarizada',
+  'stochastic_drift_neutral': 'Deriva neutral',
+};
+
+const PATTERN_ES = {
+  'burnout_resilient_homeostasis': 'Homeostasis sin agotamiento',
+  'co_regulatory_attunement': 'Sintonía co-regulatoria',
+  'chronic_asymmetric_loop': 'Bucle asimétrico crónico',
+  'bounded_stochastic_orbit': 'Órbita estocástica acotada',
+  'brittle_system_shattering': 'Sistema frágil en ruptura',
+  'slow_predictive_processing': 'Procesamiento predictivo lento',
+};
+
+const STAT_ES = {
+  mean_H_i: 'Conducta promedio · Tú', mean_H_j: 'Conducta promedio · La otra persona',
+  std_H_i: 'Variabilidad · Tú', std_H_j: 'Variabilidad · La otra persona',
+  oscillations_i: 'Oscilaciones · Tú', oscillations_j: 'Oscilaciones · La otra persona',
+  lagged_resonance_ij: 'Sintonía con retraso',
+  peak_I_i: 'Angustia pico · Tú', mean_I_i: 'Angustia promedio · Tú',
+  angst_acceleration_i: 'Velocidad de angustia',
+  max_C_i: 'Agotamiento máx · Tú', max_C_j: 'Agotamiento máx · La otra persona',
+  phase_entropy: 'Complejidad del vínculo', repair_events_j: 'Veces que la otra persona reparó',
+};
+
+let _lastResult = null;
+let _lastParams = null;
+
 function renderResults(data, params) {
   const ph = data.phenotype;
-
-  // Chart
   document.getElementById('chart-img').src = data.image_base64;
+  const atKey = ph.relational_stability.attractor_type;
+  document.getElementById('r-attractor').textContent = ATTRACTOR_ES[atKey] || atKey.replace(/_/g,' ');
 
-  // Attractor
-  document.getElementById('r-attractor').textContent =
-    ph.relational_stability.attractor_type.replace(/_/g,' ');
-
-  // Pheno cards
   const cards = [
     { title: 'Regulación', data: ph.regulation_profile },
     { title: 'Perfil Predictivo', data: ph.predictive_profile },
@@ -866,50 +873,41 @@ function renderResults(data, params) {
   cards.forEach(card => {
     const div = document.createElement('div');
     div.className = 'pheno-card';
+    const keyMap = PHENO_CARD_ES[card.title] || {};
     div.innerHTML = `<h4>${card.title}</h4>` +
-      Object.entries(card.data).map(([k,v]) =>
-        `<div class="pheno-row"><span class="pheno-key">${k.replace(/_/g,' ')}</span><span class="pheno-val ${colorClass(v)}">${v}</span></div>`
-      ).join('');
+      Object.entries(card.data).map(([k,v]) => {
+        const keyLabel = keyMap[k] || k.replace(/_/g,' ');
+        const valLabel = VAL_ES[v] || v.replace(/_/g,' ');
+        return `<div class="pheno-row"><span class="pheno-key">${keyLabel}</span><span class="pheno-val ${colorClass(v)}">${valLabel}</span></div>`;
+      }).join('');
     grid.appendChild(div);
   });
 
-  // Patterns
   const pl = document.getElementById('patterns-list');
   pl.innerHTML = '';
   (ph.emergent_patterns || []).forEach(p => {
     const s = document.createElement('span');
     s.className = 'pattern-tag';
-    s.textContent = p.replace(/_/g,' ');
+    s.textContent = PATTERN_ES[p] || p.replace(/_/g,' ');
     pl.appendChild(s);
   });
   if (!ph.emergent_patterns?.length) pl.innerHTML = '<span style="color:var(--muted);font-size:12px">ninguno detectado</span>';
 
-  // Stats
   const tbl = document.getElementById('stats-table');
   const stats = ph.simulation_statistics;
-  const statLabels = {
-    mean_H_i: 'H promedio · Sujeto', mean_H_j: 'H promedio · Alter',
-    std_H_i: 'Variabilidad H · Sujeto', std_H_j: 'Variabilidad H · Alter',
-    oscillations_i: 'Oscilaciones · Sujeto', oscillations_j: 'Oscilaciones · Alter',
-    lagged_resonance_ij: 'Resonancia retardada', peak_I_i: 'Angustia pico · Sujeto',
-    mean_I_i: 'Angustia media · Sujeto', angst_acceleration_i: 'Aceleración angustia',
-    max_C_i: 'Burnout máx · Sujeto', max_C_j: 'Burnout máx · Alter',
-    phase_entropy: 'Entropía de fase', repair_events_j: 'Eventos de reparación',
-  };
-  tbl.innerHTML = Object.entries(statLabels).map(([k,label]) =>
-    `<tr><td>${label}</td><td>${typeof stats[k] === 'number' ? stats[k].toFixed(4) : stats[k]}</td></tr>`
-  ).join('');
+  tbl.innerHTML = Object.entries(STAT_ES).map(([k, label]) => {
+    const v = stats[k];
+    if (v === undefined) return '';
+    return `<tr><td>${label}</td><td>${typeof v === 'number' ? v.toFixed(4) : v}</td></tr>`;
+  }).join('');
 
-  // Downloads
   document.getElementById('dl-png').href = data.image_base64;
   const jsonBlob = new Blob([JSON.stringify({ params, phenotype: ph }, null, 2)], { type: 'application/json' });
   document.getElementById('dl-json').href = URL.createObjectURL(jsonBlob);
 
-  // Guardar para el prompt
   _lastResult = data;
   _lastParams = params;
   document.getElementById('btn-prompt').style.display = 'flex';
-
   document.getElementById('results').style.display = 'block';
   document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -923,70 +921,45 @@ function colorClass(v) {
   return 'orange';
 }
 
-// ── Estado global para el prompt ──────────────────────────
-let _lastResult = null;
-let _lastParams = null;
-
-// Guardar resultado al renderizar (patch de renderResults)
-const _origRender = renderResults;
-
 // ── Prompt modal ───────────────────────────────────────────
 function openPromptModal() {
-  if (!_lastResult) {
-    alert('Primero ejecuta una simulación para generar el prompt.');
-    return;
-  }
-  const prompt = buildLLMPrompt(_lastParams, _lastResult);
-  document.getElementById('prompt-textarea').value = prompt;
+  if (!_lastResult) { alert('Primero ejecuta una simulación.'); return; }
+  document.getElementById('prompt-textarea').value = buildLLMPrompt(_lastParams, _lastResult);
   document.getElementById('prompt-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-
 function closePromptModal() {
   document.getElementById('prompt-modal').classList.remove('open');
   document.body.style.overflow = '';
 }
-
 document.getElementById('prompt-modal').addEventListener('click', function(e) {
   if (e.target === this) closePromptModal();
 });
-
 async function copyPrompt() {
   const ta = document.getElementById('prompt-textarea');
   try {
     await navigator.clipboard.writeText(ta.value);
     const btn = document.getElementById('copy-btn');
-    btn.textContent = '✓ Copiado';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copiar prompt'; btn.classList.remove('copied'); }, 2000);
-  } catch(e) {
-    ta.select(); document.execCommand('copy');
-  }
+    btn.textContent = '✓ Copiado'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
+  } catch(e) { ta.select(); document.execCommand('copy'); }
 }
-
 function downloadPrompt() {
-  const text = document.getElementById('prompt-textarea').value;
-  const blob = new Blob([text], { type: 'text/plain' });
+  const blob = new Blob([document.getElementById('prompt-textarea').value], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'raeem_prompt_llm.txt';
   a.click();
 }
 
-// ── Constructor del prompt ─────────────────────────────────
+// ── buildLLMPrompt (sin cambios) ───────────────────────────
 function buildLLMPrompt(params, result) {
   const ph = result.phenotype;
   const st = ph.simulation_statistics;
   const alter = params._alter_settings;
   const prof  = params._derived_agent_profile;
-
-  const ctx_labels = {
-    ROMANTIC: 'Romántica / Pareja', PROFESSIONAL: 'Profesional / Laboral',
-    SOCIAL: 'Social / Amistad', FAMILIAL: 'Familiar'
-  };
-
+  const ctx_labels = { ROMANTIC:'Romántica / Pareja', PROFESSIONAL:'Profesional / Laboral', SOCIAL:'Social / Amistad', FAMILIAL:'Familiar' };
   const lines = [];
-
   lines.push('=== CONTEXTO DEL MODELO RA-EEM ===');
   lines.push('');
   lines.push('Eres un psicólogo o terapeuta relacional experto en teoría del apego, procesamiento predictivo y sistemas dinámicos aplicados a vínculos humanos. Se te entrega la salida de una simulación computacional llamada RA-EEM (Relational Allostatic Emergent Energy Model).');
@@ -1003,7 +976,6 @@ function buildLLMPrompt(params, result) {
   lines.push('');
   lines.push('El modelo NO diagnostica clínicamente. Modela patrones emergentes de interacción bajo distintas configuraciones psicológicas.');
   lines.push('');
-
   lines.push('=== CONFIGURACIÓN DE LA SIMULACIÓN ===');
   lines.push('');
   lines.push(`Contexto del vínculo: ${ctx_labels[alter.context_type] || alter.context_type}`);
@@ -1012,7 +984,6 @@ function buildLLMPrompt(params, result) {
   lines.push(`Ruido ambiental (noise_sigma): ${params.noise_sigma}`);
   lines.push(`Delay de integración (tau): ${params.tau} ticks`);
   lines.push('');
-
   lines.push('--- Perfil del Sujeto (i) ---');
   lines.push(`  Seguridad basal (w_s): ${prof.w_s}`);
   lines.push(`  Ansiedad basal (w_a): ${prof.w_a}`);
@@ -1023,7 +994,6 @@ function buildLLMPrompt(params, result) {
   lines.push(`  Sesgo de amenaza (chi): ${params.chi}`);
   lines.push(`  Sesgo de esperanza (kappa): ${params.kappa}`);
   lines.push('');
-
   if (alter.custom_profile) {
     const cp = alter.custom_profile;
     lines.push('--- Perfil del Alter (j) — personalizado ---');
@@ -1032,13 +1002,11 @@ function buildLLMPrompt(params, result) {
     lines.push(`  Rigidez predictiva (P_default): ${cp.P_default}`);
     lines.push('');
   }
-
   lines.push('--- Parámetros de regulación y reparación ---');
   lines.push(`  Velocidad burnout (alpha): ${params.alpha}  Recuperación (beta): ${params.beta}`);
   lines.push(`  Umbral reparación: ${params.repair_threshold}  Probabilidad: ${params.repair_probability}  Fuerza: ${params.repair_strength}`);
   lines.push(`  Co-regulación (zeta): ${params.zeta}`);
   lines.push('');
-
   lines.push('=== FIRMA FENOTÍPICA (salida del modelo) ===');
   lines.push('');
   lines.push('--- Perfil de Regulación ---');
@@ -1057,28 +1025,26 @@ function buildLLMPrompt(params, result) {
   (ph.emergent_patterns || []).forEach(p => lines.push(`  · ${p.replace(/_/g,' ')}`));
   if (!ph.emergent_patterns?.length) lines.push('  (ninguno)');
   lines.push('');
-
   lines.push('=== ESTADÍSTICAS DE LA SIMULACIÓN ===');
   lines.push('');
   const statLabels = {
-    mean_H_i: 'H promedio Sujeto', mean_H_j: 'H promedio Alter',
-    std_H_i: 'Variabilidad H Sujeto', std_H_j: 'Variabilidad H Alter',
-    oscillations_i: 'Oscilaciones Sujeto', oscillations_j: 'Oscilaciones Alter',
-    lagged_resonance_ij: 'Resonancia retardada i→j',
-    peak_I_i: 'Angustia pico Sujeto', peak_I_j: 'Angustia pico Alter',
-    mean_I_i: 'Angustia media Sujeto', mean_I_j: 'Angustia media Alter',
-    angst_acceleration_i: 'Aceleración de angustia',
-    max_C_i: 'Burnout máximo Sujeto', max_C_j: 'Burnout máximo Alter',
-    mean_C_i: 'Burnout medio Sujeto', mean_C_j: 'Burnout medio Alter',
-    phase_entropy: 'Entropía de fase relacional',
-    repair_events_j: 'Eventos de reparación del Alter',
+    mean_H_i:'H promedio Sujeto', mean_H_j:'H promedio Alter',
+    std_H_i:'Variabilidad H Sujeto', std_H_j:'Variabilidad H Alter',
+    oscillations_i:'Oscilaciones Sujeto', oscillations_j:'Oscilaciones Alter',
+    lagged_resonance_ij:'Resonancia retardada i→j',
+    peak_I_i:'Angustia pico Sujeto', peak_I_j:'Angustia pico Alter',
+    mean_I_i:'Angustia media Sujeto', mean_I_j:'Angustia media Alter',
+    angst_acceleration_i:'Aceleración de angustia',
+    max_C_i:'Burnout máximo Sujeto', max_C_j:'Burnout máximo Alter',
+    mean_C_i:'Burnout medio Sujeto', mean_C_j:'Burnout medio Alter',
+    phase_entropy:'Entropía de fase relacional',
+    repair_events_j:'Eventos de reparación del Alter',
   };
-  Object.entries(statLabels).forEach(([k, label]) => {
+  Object.entries(statLabels).forEach(([k,label]) => {
     const v = st[k];
     if (v !== undefined) lines.push(`  ${label}: ${typeof v === 'number' ? v.toFixed(5) : v}`);
   });
   lines.push('');
-
   lines.push('=== SOLICITUD DE ANÁLISIS ===');
   lines.push('');
   lines.push('Con toda la información anterior, por favor realiza:');
@@ -1094,10 +1060,13 @@ function buildLLMPrompt(params, result) {
   lines.push('5. COHERENCIA DEL MODELO: ¿Los resultados son internamente consistentes? ¿Hay algo que llame la atención como inesperado o significativo?');
   lines.push('');
   lines.push('Responde con profundidad, usando lenguaje humanista y clínico accesible. Puedes hacer preguntas reflexivas donde sea útil.');
-
   return lines.join('\n');
 }
 
+// ── Init ───────────────────────────────────────────────────
+loadConfig();
+loadFromStorage();
+document.getElementById('server-url').addEventListener('change', saveToStorage);
 </script>
 </body>
 </html>
