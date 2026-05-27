@@ -287,17 +287,45 @@ class RAEEMSimulation:
         self.H_j_history.append(self.H_j)
 
         return {
+
+            # ========================================================
+            # COMPORTAMIENTO
+            # ========================================================
+
             "H_i": self.H_i,
             "H_j": self.H_j,
+
+            # ========================================================
+            # ANGUSTIA
+            # ========================================================
 
             "I_i": self.i.I,
             "I_j": self.j.I,
 
+            # ========================================================
+            # BURNOUT
+            # ========================================================
+
             "C_i": self.i.C,
             "C_j": self.j.C,
 
+            # ========================================================
+            # MEMORIA RELACIONAL
+            # ========================================================
+
             "M_i": self.i.M,
             "M_j": self.j.M,
+
+            # ========================================================
+            # EXPECTATIVAS
+            # ========================================================
+
+            "E_i": self.i.E,
+            "E_j": self.j.E,
+
+            # ========================================================
+            # ACTIVACIONES DEFENSIVAS
+            # ========================================================
 
             "wa_i": self.i.w_tilde_a,
             "wa_j": self.j.w_tilde_a,
@@ -305,8 +333,18 @@ class RAEEMSimulation:
             "we_i": self.i.w_tilde_e,
             "we_j": self.j.w_tilde_e,
 
-            "fragility_i": fragility_i,
-            "fragility_j": fragility_j,
+            # ========================================================
+            # ERRORES PREDICTIVOS
+            # ========================================================
+
+            "eps_i": eps_i,
+            "eps_j": eps_j,
+
+            # ========================================================
+            # PERCEPCIONES FILTRADAS
+            # ========================================================
+
+            "H_hat_ij": H_hat_ij,
         }
 
 
@@ -359,14 +397,63 @@ def simular_api(params: dict) -> dict:
     #   - análisis de distribución de atractores (loop L2)
     #   - verificación post-hoc de condición de estabilidad L1
     #   - análisis de cuencas de atracción en Nivel 2
+    
     history = {
-        "H_i": [], "H_j": [],
-        "I_i": [], "I_j": [],
-        "C_i": [], "C_j": [],
-        "M_i": [], "M_j": [],        # atractores L2
-        "wa_i": [], "wa_j": [],      # condición estabilidad L1
-        "we_i": [], "we_j": [],      # condición estabilidad L1
-        "fragility_i": [], "fragility_j": [],
+
+        # ========================================================
+        # COMPORTAMIENTO
+        # ========================================================
+
+        "H_i": [],
+        "H_j": [],
+
+        # ========================================================
+        # ANGUSTIA
+        # ========================================================
+
+        "I_i": [],
+        "I_j": [],
+
+        # ========================================================
+        # BURNOUT
+        # ========================================================
+
+        "C_i": [],
+        "C_j": [],
+
+        # ========================================================
+        # MEMORIA
+        # ========================================================
+
+        "M_i": [],
+        "M_j": [],
+
+        # ========================================================
+        # EXPECTATIVAS
+        # ========================================================
+
+        "E_i": [],
+        "E_j": [],
+
+        # ========================================================
+        # ACTIVACIONES DEFENSIVAS
+        # ========================================================
+
+        "wa_i": [],
+        "wa_j": [],
+
+        "we_i": [],
+        "we_j": [],
+
+        # ========================================================
+        # OPCIONALES
+        # ========================================================
+
+        "eps_i": [],
+        "eps_j": [],
+
+        "H_hat_ij": [],
+        "H_hat_ji": [],
     }
 
     for _ in range(ticks):
@@ -376,6 +463,14 @@ def simular_api(params: dict) -> dict:
 
     # Firma fenotípica
     phenotype = compute_phenotype_signature(history, params)
+
+    from topology import analyze_dyadic_coupling
+
+    level2 = analyze_dyadic_coupling(
+        history,
+        theta=params.get("graph_theta", 0.3)
+    )
+
 
     # ── Gráfica ───────────────────────────────────────────────────
     fig = plt.figure(figsize=(14, 10), facecolor='#0d1117')
@@ -436,6 +531,18 @@ def simular_api(params: dict) -> dict:
     img_b64 = base64.b64encode(buf.read()).decode('utf-8')
 
     return {
+        "model": {
+            "name": "RA-EEM",
+            "version": "0.3.5",
+            "schema_version": "topology-level2",
+            "build": "2026-05-27"
+        },
+
         "phenotype": phenotype,
+
+        "topology": topology,
+
+        "history": history,
+        
         "image_base64": f"data:image/png;base64,{img_b64}"
     }
