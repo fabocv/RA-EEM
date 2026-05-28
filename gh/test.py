@@ -5,8 +5,62 @@ sys.path.append(
     os.path.abspath("..")
 )
 
-from simulador_api import simular_api
+from simulador_api_topology import simular_api
 test_params = {
+    "lambda_s": 1.415,
+    "lambda_r": 0.264,
+    "lambda_g": 0.128,
+    "lambda_I": 0.05,
+    "sigma": 1.0,
+    "kappa": 0.98,
+    "chi": 1.2,
+    "alpha": 0.0058,
+    "eta_symp": 0.0008,
+    "eta_evit": 0.0007,
+    "beta": 0.0172,
+    "p_burnout": 1.5,
+    "q_fatigue": 3,
+    "alpha_a": 0.02,
+    "alpha_e": 0.01,
+    "gamma_plus": 0.0127,
+    "gamma_minus": 0.017,
+    "nu": 0.08,
+    "mu_a": 0.2,
+    "delta_a": 0.08,
+    "mu_e": 0.1,
+    "delta_e": 0.05,
+    "tau": 5,
+    "rho_e": 0.04,
+    "repair_threshold": 0.755,
+    "repair_probability": 0.031,
+    "repair_strength": 0.8,
+    "zeta": 0.01,
+    "noise_sigma": 0.015,
+    "_derived_agent_profile": {
+        "w_s": 0.615,
+        "w_a": 0.154,
+        "w_e": 0.154,
+        "w_d": 0.077,
+        "A": -0.824,
+        "P_default": 0.43
+    },
+    "_stress_profile": "LOW_NOISE_STABLE",
+    "_alter_settings": {
+        "context_type": "SOCIAL",
+        "archetype": "SUPPORTIVE_FRIEND",
+        "custom_profile": {
+            "w_s": 0.75,
+            "w_a": 0.6,
+            "w_e": 0.55,
+            "w_d": 0.25,
+            "G": 0.9,
+            "A": 0.86,
+            "P_default": 0.8
+        }
+    }
+}
+
+test_params_mm = {
     "lambda_s": 1.191,
     "lambda_r": 0.256,
     "lambda_g": 0.12,

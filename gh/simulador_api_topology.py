@@ -20,6 +20,8 @@ import matplotlib
 matplotlib.use('Agg')  # CRÍTICO: backend sin GUI para servidor
 import matplotlib.pyplot as plt
 
+from topology import analyze_dyadic_coupling
+
 from dataclasses import dataclass, field
 from collections import deque
 
@@ -468,6 +470,13 @@ def simular_api(params: dict) -> dict:
     # Firma fenotípica
     phenotype = compute_phenotype_signature(history, params)
 
+    
+
+    topology_level2 = analyze_dyadic_coupling(
+        history,
+        theta=params.get("graph_theta", 0.3)
+    )
+
 
     # ── Gráfica ───────────────────────────────────────────────────
     fig = plt.figure(figsize=(14, 10), facecolor='#0d1117')
@@ -537,7 +546,11 @@ def simular_api(params: dict) -> dict:
 
         "phenotype": phenotype,
 
+        "topology": topology_level2,
+
         "image_base64": f"data:image/png;base64,{img_b64}"
     }
+
+    print(output["model"], output["phenotype"], output["topology"])
 
     return output
