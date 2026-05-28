@@ -20,6 +20,8 @@ import matplotlib
 matplotlib.use('Agg')  # CRÍTICO: backend sin GUI para servidor
 import matplotlib.pyplot as plt
 
+from topology import analyze_dyadic_coupling
+
 from dataclasses import dataclass, field
 from collections import deque
 
@@ -310,7 +312,7 @@ class RAEEMSimulation:
             "C_j": self.j.C,
 
             # ========================================================
-            # MEMORIA RELACIONAL
+            # MEMORIA
             # ========================================================
 
             "M_i": self.i.M,
@@ -345,6 +347,7 @@ class RAEEMSimulation:
             # ========================================================
 
             "H_hat_ij": H_hat_ij,
+            "H_hat_ji": H_hat_ji,
         }
 
 
@@ -464,9 +467,9 @@ def simular_api(params: dict) -> dict:
     # Firma fenotípica
     phenotype = compute_phenotype_signature(history, params)
 
-    from topology import analyze_dyadic_coupling
+    
 
-    level2 = analyze_dyadic_coupling(
+    topology_level2 = analyze_dyadic_coupling(
         history,
         theta=params.get("graph_theta", 0.3)
     )
@@ -530,7 +533,7 @@ def simular_api(params: dict) -> dict:
     buf.seek(0)
     img_b64 = base64.b64encode(buf.read()).decode('utf-8')
 
-    return {
+    output =  {
         "model": {
             "name": "RA-EEM",
             "version": "0.3.5",
@@ -540,9 +543,11 @@ def simular_api(params: dict) -> dict:
 
         "phenotype": phenotype,
 
-        "topology": topology,
+        "topology": topology_level2,
 
-        "history": history,
-        
         "image_base64": f"data:image/png;base64,{img_b64}"
     }
+
+    print(output["model"], output["phenotype"], output["topology"])
+
+    return output
